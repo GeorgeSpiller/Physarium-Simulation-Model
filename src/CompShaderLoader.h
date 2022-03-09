@@ -16,7 +16,7 @@
 	Used as you cannot link compute shaders with shaders of other types (vertex, fragment, ect..)
 */
 
-class CompShaderLoader : ShaderLoader
+class CompShaderLoader : public ShaderLoader
 {
 public:
 	// the program ID

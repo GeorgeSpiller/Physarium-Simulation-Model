@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="C:\Users\geosp\Downloads\glad4.5\src\glad.c" />
+    <ClCompile Include="src\Agent.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\CompShaderLoader.cpp" />
     <ClCompile Include="src\ShaderLoader.cpp" />
@@ -156,6 +157,9 @@
     <ClInclude Include="src\CompShaderLoader.h" />
     <ClInclude Include="src\Depreciated\TrailMap.h" />
     <ClInclude Include="src\Window_GLFW.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\TrailMap.comp.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
