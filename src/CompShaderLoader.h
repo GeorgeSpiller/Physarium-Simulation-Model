@@ -1,6 +1,6 @@
 #pragma once
-#ifndef COMPSHADER_H
-#define COMPSHADER_H
+//#ifndef COMPSHADER_H
+//#define COMPSHADER_H
 
 #include <glad/glad.h> // include glad to get all thre required opengl hedders
 #include <string>
@@ -27,6 +27,8 @@ public:
 	~CompShaderLoader();
 
 	void useShaderStorageBuffer(GLsizeiptr size, void* data);
+	void bindShaderStorageBuffer();
+	void unbindShaderStorageBuffer();
 
 	// use/activate the shader
 	void use() { glUseProgram(ID); };
@@ -34,4 +36,4 @@ public:
 private:
 	GLuint BuffObjNameArry = 0;
 };
-#endif
+//#endif

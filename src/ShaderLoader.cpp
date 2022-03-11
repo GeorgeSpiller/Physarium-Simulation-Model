@@ -86,7 +86,22 @@ void ShaderLoader::setInt(const std::string& name, int value) const
 
 void ShaderLoader::setFloat(const std::string& name, float value) const
 {
+	std::cout << "Setting Float uniform: " << name << ", to value: " << value << std::endl;
+	/*
+	This function call below results in GL_INVALID_VALUE glerror.
+
+	The cause as stated in the docs: https://docs.gl/gl4/glUniform
+		"GL_INVALID_VALUE is generated if count is less than 0."
+	However, this function does not have a cout parameter? :
+		"void glUniform1f( GLint location, GLfloat v0 );"
+
+	Am very confused, potential reasonings:
+	 - value is an extreamly low float (0.00XX) which could flag that parameter s invalid?
+	 - glGetUniformLocation() is returning something funky?
+	*/
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+	// Uncomment line below to print error 
+	//std::cout << glGetError() << std::endl;
 };
 
 void ShaderLoader::setVec4(const std::string& name, float v1, float v2, float v3, float v4) const

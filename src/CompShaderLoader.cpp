@@ -2,6 +2,7 @@
 
 CompShaderLoader::CompShaderLoader(const char* computePath)
 {
+	
 	// 1. retrieve the compute source code from filePath
 	std::string computeCode;
 	std::ifstream cShaderFile;
@@ -35,15 +36,15 @@ CompShaderLoader::CompShaderLoader(const char* computePath)
 	glCompileShader(compute);
 	// checking that the shader code compilation was successful
 	if (!checkCompileErrors(compute, "SHADER")) exit(-1);
-
 	// creating the final shader program
 	ID = glCreateProgram();
 	glAttachShader(ID, compute);
 	glLinkProgram(ID);
 	// checking for shader linking errors
-	if (!checkCompileErrors(compute, "PROGRAM")) exit(-1);
+	if (!checkCompileErrors(ID, "PROGRAM")) exit(-1);
 	// since we have compiled a complete shader program, we no longer need the stand allone vertex and fragment shaders
 	glDeleteShader(compute);
+	
 };
 
 CompShaderLoader::~CompShaderLoader()
@@ -57,5 +58,16 @@ void CompShaderLoader::useShaderStorageBuffer(GLsizeiptr size, void* data)
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, BuffObjNameArry);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BuffObjNameArry);
+	unbindShaderStorageBuffer();
+}
+
+void CompShaderLoader::bindShaderStorageBuffer()
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, BuffObjNameArry);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BuffObjNameArry);
+}
+
+void CompShaderLoader::unbindShaderStorageBuffer()
+{
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }

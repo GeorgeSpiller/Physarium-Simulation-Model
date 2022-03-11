@@ -9,24 +9,26 @@
 #include "Window_GLFW.h"
 #include "Agent.cpp"
 
-// define
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define WINDOW_NAME "Physarum Simulation."
-#define VERTEX_SHADER_FILE_LOCATION "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\VertexShader.vert.shader"
-#define FRAGMENT_SHADER_FILE_LOCATION "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader"
-#define AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader"
-#define TRAILMAP_COMPUTESHADER_FILE_LOCATION "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader"
+// consts
+constexpr auto WINDOW_WIDTH = 800;
+constexpr auto WINDOW_HEIGHT = 600;
+constexpr auto WINDOW_NAME = "Physarum Simulation.";
+constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\VertexShader.vert.shader";
+constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
+constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
+constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64. This is because work groups are 
 	allocated in blocks divisable by 64 to improve the efficency and maximum count of aganets. Any
 	less than 64 agents and no agents will be rendered, as the dispached workgroup size will be 0.
 */
-const size_t NUMBER_OF_AGENTS = 64;
+const size_t NUMBER_OF_AGENTS = 1024;
 
 /*
-	This code was adapted from the following tutorial by Joey de Vries:
+	This code was adapted using the following resources:
+	
+	tutorial by Joey de Vries:
 	https://learnopengl.com/Getting-started/Shaders
 	https://twitter.com/JoeyDeVriez
 
@@ -38,7 +40,6 @@ const size_t NUMBER_OF_AGENTS = 64;
 	Compute Shader Flocking Behaviour: p492
 */
 
-const int number_of_agents = 1;
 
 int main()
 {
@@ -46,10 +47,14 @@ int main()
 
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, false, 0);
 
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+
 	const char* vertexShaderFile = VERTEX_SHADER_FILE_LOCATION;
 	const char* fragmentShaderFile = FRAGMENT_SHADER_FILE_LOCATION;
 	const char* agentMovmentShaderFile = AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION;
 	const char* trailMapShaderFile = TRAILMAP_COMPUTESHADER_FILE_LOCATION;
+	
 	ShaderLoader GeometryShaderProg(vertexShaderFile, fragmentShaderFile);
 	CompShaderLoader AgentMovmentProg(agentMovmentShaderFile);
 	CompShaderLoader TrailMapProg(trailMapShaderFile);
@@ -58,7 +63,7 @@ int main()
 	AgentSim agentSim = AgentSim(WINDOW_WIDTH, WINDOW_HEIGHT, NUMBER_OF_AGENTS);
 	AgentMovmentProg.useShaderStorageBuffer(NUMBER_OF_AGENTS * sizeof(Agent), (void*)&agentSim.getAgents()[0]);
 
-	// create an input and output texture to read and write to
+	// create an input and output texture to read/write and write only to, respectivly
 	unsigned int inp_TextureID, out_TextureID;
 	// input texture
 	glGenTextures(1, &inp_TextureID);
@@ -83,6 +88,14 @@ int main()
 	glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 	// setup buffers for the texture we render
+	// ------------------------------------------------------------
+	// believe the movment issue may involve the seting up of the buffers bellow
+	// - Where does it read output from comput shader to render agent positions?
+	// - Does this geometry get textured by the trail map compute shader?
+	// - If not, where does it get shaded?
+	// - What gets passed to the vert and frag shaders?
+	// - Where can i access the output of the AgentMovment and TrailMap Compute?
+	// ------------------------------------------------------------
 	unsigned int tex_VAO, tex_VBO;
 	glGenBuffers(1, &tex_VBO);
 	glGenVertexArrays(1, &tex_VAO);
@@ -113,27 +126,34 @@ int main()
 	GLuint groups_x = WINDOW_WIDTH / 8;
 	GLuint groups_y = WINDOW_HEIGHT / 8;
 
+	// ------------------------------------------------------------
+	// - Do we strictly need to bind and unbind the ShaderStorageBuffer each loop?
+	// - Is this where we can interact with gl image buffers? 
+	// - Where does the TrailMap compute write to? Where is outImg stored/refferenced to here?
+	// - Can we replace the vert array of the texture quad to render using index array instead?
+	// - How does the compute shader know where out out_TextureID is?
+	// ------------------------------------------------------------
 	// -------------------- main render loop --------------------
 	while (!window.windowShouldClose())
 	{
 		// input
 		window.active();
-		float deltaTime = window.getDeltaTime();
+		float deltaT = window.getDeltaTime();
 
 		// Update agent movement
 		AgentMovmentProg.use();
-		AgentMovmentProg.setFloat("deltaTime", deltaTime);
+		// AgentMovmentProg.setFloat("deltaTime", deltaT);
 		glDispatchCompute(groups_agent, 1, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
 		// update trail map
 		TrailMapProg.use();
+		// AgentMovmentProg.setFloat("deltaTime", deltaT);
 		glDispatchCompute(groups_x, groups_y, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 		// render Geometry (texture)
-		// ----------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// switch to vert and frag shader and draw texture quad
@@ -142,13 +162,15 @@ int main()
 		glBindBuffer(GL_ARRAY_BUFFER, tex_VBO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+		
 		// events
 		// ----------
 		window.nextRender();
 
 	}
 
+	std::cout << "GL error stack: " << glGetError() << std::endl;
+	
 	// de-allocate all resources once they've outlived their purpose:
 	// --------------------------------------------------------------
 	glDeleteBuffers(1, &tex_VBO);
