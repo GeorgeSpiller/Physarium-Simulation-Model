@@ -86,7 +86,6 @@ void ShaderLoader::setInt(const std::string& name, int value) const
 
 void ShaderLoader::setFloat(const std::string& name, float value) const
 {
-	std::cout << "Setting Float uniform: " << name << ", to value: " << value << std::endl;
 	/*
 	This function call below results in GL_INVALID_VALUE glerror.
 

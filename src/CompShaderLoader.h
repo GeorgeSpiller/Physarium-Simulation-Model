@@ -19,19 +19,13 @@
 class CompShaderLoader : public ShaderLoader
 {
 public:
-	// the program ID
-	unsigned int ID;
 
-	CompShaderLoader(unsigned int ID = 0) : ID(ID) {}
 	CompShaderLoader(const char* computePath);
 	~CompShaderLoader();
 
 	void useShaderStorageBuffer(GLsizeiptr size, void* data);
 	void bindShaderStorageBuffer();
 	void unbindShaderStorageBuffer();
-
-	// use/activate the shader
-	void use() { glUseProgram(ID); };
 
 private:
 	GLuint BuffObjNameArry = 0;

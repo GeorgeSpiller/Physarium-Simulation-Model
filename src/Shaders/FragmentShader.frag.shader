@@ -1,13 +1,26 @@
 #version 440 core
 
 in vec2 coords;
-uniform sampler2D tex;
-out vec4 FragCol;
+
+uniform sampler2D texture1;
+
+out vec4 FragColor;
 
 void main()
 {
-    FragCol = texture(tex, coords);
+    FragColor = texture(texture1, coords);
 }
+
+//#version 440 core
+//
+//in vec2 coords;
+//uniform sampler2D tex;
+//out vec4 FragCol;
+//
+//void main()
+//{
+//    FragCol = texture(tex, coords);
+//}
 
 
 // fragment shader for when using texture

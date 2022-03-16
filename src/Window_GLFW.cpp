@@ -30,6 +30,8 @@ Window_GLFW::Window_GLFW(int width, int height, std::string title, bool fullscre
 	w_winWidth = width;
 	w_winHeight = height;
 
+	glfwSwapInterval(swapInterval);
+
 	// Using GLAD to load openGL function deffinitions
 	// using glfwGetProcAddress and casting return GLADloadproc type, then loading it with gladLoadGLLoader
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -38,9 +40,9 @@ Window_GLFW::Window_GLFW(int width, int height, std::string title, bool fullscre
 		glfwTerminate();
 	};
 
-	glViewport(0, 0, width, height);
+	/*glViewport(0, 0, width, height);
 	GLFWframebuffersizefun callBackResize = framebuffer_size_callback;
-	glfwSetFramebufferSizeCallback(w, callBackResize);
+	glfwSetFramebufferSizeCallback(w, callBackResize);*/
 }
 
 Window_GLFW::~Window_GLFW()

@@ -1,14 +1,26 @@
 #version 440 core
 
-layout(location = 0) in vec2 uv;
-layout(location = 1) in vec2 tex;
+layout(location = 0) in vec2 uvCoords;
+layout(location = 1) in vec2 textureCoords;
 out vec2 coords;
 
 void main()
 {
-    coords = tex;
-    gl_Position = vec4(uv, 0.0, 1.0);
+    coords = textureCoords;
+    gl_Position = vec4(uvCoords, 0.0, 1.0);
 }
+
+//#version 440 core
+//
+//layout(location = 0) in vec2 uv;
+//layout(location = 1) in vec2 tex;
+//out vec2 coords;
+//
+//void main()
+//{
+//    coords = tex;
+//    gl_Position = vec4(uv, 0.0, 1.0);
+//}
 
 
 // vertex shader when using texture

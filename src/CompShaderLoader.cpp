@@ -58,7 +58,8 @@ void CompShaderLoader::useShaderStorageBuffer(GLsizeiptr size, void* data)
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, BuffObjNameArry);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, BuffObjNameArry);
-	unbindShaderStorageBuffer();
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	// unbindShaderStorageBuffer();
 }
 
 void CompShaderLoader::bindShaderStorageBuffer()

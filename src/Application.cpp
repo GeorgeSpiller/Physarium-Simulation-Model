@@ -7,7 +7,7 @@
 #include "ShaderLoader.h"
 #include "CompShaderLoader.h"
 #include "Window_GLFW.h"
-#include "Agent.cpp"
+#include "Agent.h"
 
 // consts
 constexpr auto WINDOW_WIDTH = 800;
@@ -17,13 +17,17 @@ constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Wor
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
+// simulation settings
+constexpr auto AGENT_movmentSpeed = 180.0f;
+constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 0.01f;	// higher value = trails stay for longer
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64. This is because work groups are 
 	allocated in blocks divisable by 64 to improve the efficency and maximum count of aganets. Any
 	less than 64 agents and no agents will be rendered, as the dispached workgroup size will be 0.
 */
-const size_t NUMBER_OF_AGENTS = 1024;
+const size_t NUMBER_OF_AGENTS = 64;
 
 /*
 	This code was adapted using the following resources:
@@ -43,7 +47,9 @@ const size_t NUMBER_OF_AGENTS = 1024;
 
 int main()
 {
-	// srand((unsigned)(time(NULL)));
+	srand((unsigned)(time(NULL)));
+
+	AgentSim agentSim = AgentSim(WINDOW_WIDTH, WINDOW_HEIGHT, NUMBER_OF_AGENTS);
 
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, false, 0);
 
@@ -60,7 +66,6 @@ int main()
 	CompShaderLoader TrailMapProg(trailMapShaderFile);
 
 	// set up compute shader storage buffers
-	AgentSim agentSim = AgentSim(WINDOW_WIDTH, WINDOW_HEIGHT, NUMBER_OF_AGENTS);
 	AgentMovmentProg.useShaderStorageBuffer(NUMBER_OF_AGENTS * sizeof(Agent), (void*)&agentSim.getAgents()[0]);
 
 	// create an input and output texture to read/write and write only to, respectivly
@@ -96,7 +101,7 @@ int main()
 	// - What gets passed to the vert and frag shaders?
 	// - Where can i access the output of the AgentMovment and TrailMap Compute?
 	// ------------------------------------------------------------
-	unsigned int tex_VAO, tex_VBO;
+	GLuint tex_VAO, tex_VBO = 0;
 	glGenBuffers(1, &tex_VBO);
 	glGenVertexArrays(1, &tex_VAO);
 	glBindVertexArray(tex_VAO);
@@ -122,9 +127,17 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(tex_VAO);
 
+	// set uniform settings for agentMovment compute and trailMap compute
+	AgentMovmentProg.use();
+	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
+	TrailMapProg.use();
+	TrailMapProg.setFloat("trailDiffuseSpeed", TRAILMAP_trailDiffuseSpeed);
+	TrailMapProg.setFloat("trailEvaporationSpeed", TRAILMAP_trailEvaporationSpeed);
+
 	GLuint groups_agent = NUMBER_OF_AGENTS / 64;
 	GLuint groups_x = WINDOW_WIDTH / 8;
 	GLuint groups_y = WINDOW_HEIGHT / 8;
+	float debug_newAngle = 0.001f;
 
 	// ------------------------------------------------------------
 	// - Do we strictly need to bind and unbind the ShaderStorageBuffer each loop?
@@ -139,16 +152,19 @@ int main()
 		// input
 		window.active();
 		float deltaT = window.getDeltaTime();
-
+		// debug_newAngle += 0.1f * deltaT;
+		// if (debug_newAngle > TWO_PI) { debug_newAngle = 0.0f; }
 		// Update agent movement
 		AgentMovmentProg.use();
-		// AgentMovmentProg.setFloat("deltaTime", deltaT);
+		AgentMovmentProg.setFloat("deltaTime", deltaT);
+		AgentMovmentProg.setFloat("randomSeed", static_cast <float> (rand()));
+		AgentMovmentProg.setFloat("debug_newAngle", debug_newAngle);
 		glDispatchCompute(groups_agent, 1, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
 		// update trail map
 		TrailMapProg.use();
-		// AgentMovmentProg.setFloat("deltaTime", deltaT);
+		TrailMapProg.setFloat("deltaTime", deltaT);
 		glDispatchCompute(groups_x, groups_y, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
