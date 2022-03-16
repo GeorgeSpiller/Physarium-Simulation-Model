@@ -30,6 +30,8 @@ public:
 
 	void setVec4(const std::string& name, float v1, float v2, float v3, float v4) const;
 
+	void setVec3(const std::string& name, float v1, float v2, float v3) const;
+
 	void setUniformBufferSubData(GLintptr offset, GLsizeiptr size, void* data);
 
 protected:

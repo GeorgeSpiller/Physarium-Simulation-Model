@@ -10,24 +10,29 @@
 #include "Agent.h"
 
 // consts
-constexpr auto WINDOW_WIDTH = 800;
-constexpr auto WINDOW_HEIGHT = 600;
+constexpr auto WINDOW_WIDTH = 1700; // 960
+constexpr auto WINDOW_HEIGHT = 900; // 540
 constexpr auto WINDOW_NAME = "Physarum Simulation.";
 constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\VertexShader.vert.shader";
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
 // simulation settings
-constexpr auto AGENT_movmentSpeed = 180.0f;
-constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 0.01f;	// higher value = trails stay for longer
+constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;		// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 0.1f;	// higher value = trails evaporate faster
+// Agent settings
+constexpr auto AGENT_movmentSpeed = 50.0f;
+constexpr auto AGENT_turnSpeed = 20.0;
+constexpr auto AGENT_sensorOffsetDst = 16.0;
+constexpr auto AGENT_sensorAngleSpacing = 0.6;
+constexpr auto AGENT_sensorSize = 3;
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64. This is because work groups are 
 	allocated in blocks divisable by 64 to improve the efficency and maximum count of aganets. Any
 	less than 64 agents and no agents will be rendered, as the dispached workgroup size will be 0.
 */
-const size_t NUMBER_OF_AGENTS = 64;
+const size_t NUMBER_OF_AGENTS = 8192;
 
 /*
 	This code was adapted using the following resources:
@@ -127,9 +132,12 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(tex_VAO);
 
-	// set uniform settings for agentMovment compute and trailMap compute
+	// set uniform settings (that are constant) for agentMovment compute and trailMap compute
 	AgentMovmentProg.use();
 	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
+	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeed);
+	AgentMovmentProg.setVec3("agentSensorSettings", AGENT_sensorOffsetDst, AGENT_sensorAngleSpacing, AGENT_sensorSize);
+
 	TrailMapProg.use();
 	TrailMapProg.setFloat("trailDiffuseSpeed", TRAILMAP_trailDiffuseSpeed);
 	TrailMapProg.setFloat("trailEvaporationSpeed", TRAILMAP_trailEvaporationSpeed);
@@ -137,7 +145,8 @@ int main()
 	GLuint groups_agent = NUMBER_OF_AGENTS / 64;
 	GLuint groups_x = WINDOW_WIDTH / 8;
 	GLuint groups_y = WINDOW_HEIGHT / 8;
-	float debug_newAngle = 0.001f;
+
+	float DEBUG_agentTurnSpeed = 0.0;
 
 	// ------------------------------------------------------------
 	// - Do we strictly need to bind and unbind the ShaderStorageBuffer each loop?
@@ -158,7 +167,11 @@ int main()
 		AgentMovmentProg.use();
 		AgentMovmentProg.setFloat("deltaTime", deltaT);
 		AgentMovmentProg.setFloat("randomSeed", static_cast <float> (rand()));
-		AgentMovmentProg.setFloat("debug_newAngle", debug_newAngle);
+		// debug
+		/*AgentMovmentProg.setFloat("agentTurnSpeed", DEBUG_agentTurnSpeed);
+		DEBUG_agentTurnSpeed += 0.001;
+		std::cout << "A_turnSpeed: " << DEBUG_agentTurnSpeed << std::endl;*/
+
 		glDispatchCompute(groups_agent, 1, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 

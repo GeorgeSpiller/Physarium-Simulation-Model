@@ -17,29 +17,41 @@ layout(std430, binding = 2) buffer AgentBuffer
     Agent agents[];
 };
 
+// these uniforms change each frame, are the same for all agents
 uniform float deltaTime;
-uniform float agentMovmentSpeed;
-uniform float debug_newAngle;
 uniform float randomSeed;
+// these uniforms are constant, are the same for all agents
+uniform float agentMovmentSpeed;
+uniform vec3 agentSensorSettings;
+uniform float agentTurnSpeed;
 
 const ivec2 imgSize = imageSize(imgOutput);
-const uint k = 1103515245U;  // GLIB C, used for randomness
+float sensorOffsetDst = agentSensorSettings.x;
+float sensorAngleSpacing = agentSensorSettings.y;
+int sensorSize = int(agentSensorSettings.z);
 
 // https://www.shadertoy.com/view/XlXcW4
-vec3 hash(uvec3 x)
+uint hash(uint state) 
 {
-    x = ((x >> 8U) ^ x.yzx) * k;
-    x = ((x >> 8U) ^ x.yzx) * k;
-    x = ((x >> 8U) ^ x.yzx) * k;
-    vec3 vout = vec3(x) * (1.0 / float(0xffffffffU));
-    return vout; //(vout.x + vout.y + vout.z) / 3
+    state ^= 2747636419;
+    state *= 2654435769;
+    state ^= state >> 16;
+    state *= 2654435769;
+    state ^= state >> 16;
+    state *= 2654435769;
+    return state;
 }
 
-//float randomHalfAngle(uint seed)
-//{
-//    float psudoRandomFloat = float(hash(uvec3(seed, randomSeed, imgSize.y)));
-//    return (psudoRandomFloat / 4294967295.0) * TWO_PI;
-//}
+float scaleRantomTo01(uint random)
+{
+    return float(random) / 4294967295.0;
+}
+
+vec2 angleToVector(float angle) 
+{
+    return vec2(cos(angle), sin(angle));
+}
+
 
 vec2 outOfBounds_WrapArround(vec2 pos) 
 {
@@ -62,49 +74,103 @@ vec2 outOfBounds_WrapArround(vec2 pos)
     return pos;
 }
 
-float outOfBounds_RandomAngle(vec2 pos, float agentAngle)
+float randomHalfAngle(vec2 pos, uint AgentIndex, uint rand)
 {
-    //float randHalfAng = randomHalfAngle(uint(pos.x + pos.y + agentAngle));
-    //float outputAngle = agentAngle;
-    //if (pos.x < 100)
-    //{
-    //    outputAngle = randHalfAng + (PI + HALF_PI);
-    //}
-    // 
-    //else if (pos.x > imgSize.x)
-    //{
-    //    outputAngle = randomHalfAngle + (PI / 2);
-    //}
-    //else if (pos.y < 0)
-    //{
-    //    outputAngle = randomHalfAngle;
-    //}
-    //else if (pos.y > imgSize.y)
-    //{
-    //    outputAngle = randomHalfAngle + PI;
-    //}
-    if (outputAngle > TWO_PI) { outputAngle -= TWO_PI; }
-    return outputAngle;
+    float returnAngle = 0.0;
+
+    pos.x = min(imgSize.x - 0.01, max(0, pos.x));
+    pos.y = min(imgSize.y - 0.01, max(0, pos.y));
+    returnAngle = scaleRantomTo01(rand) * (TWO_PI / 2);
+    returnAngle += HALF_PI / 10;
+    if (returnAngle > PI) { returnAngle -= HALF_PI / 5; }
+    return returnAngle;
+}
+
+float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
+{
+    float sensorAngle = agent.angle + sensorAngleOffset;
+    vec2 sensorDir = angleToVector(sensorAngle); // vec2(cos(sensorAngle), sin(sensorAngle));
+
+    ivec2 sensorCenter = ivec2(vec2(agent.x, agent.y) + sensorDir * sensorOffsetDst);
+    float sum = 0.0;
+
+    for (int x_off = -sensorSize; x_off <= sensorSize; x_off++)
+        for (int y_off = -sensorSize; y_off <= sensorSize; y_off++)
+        {
+            ivec2 pos = sensorCenter + ivec2(x_off, y_off);
+            if (pos.x >= 0 && pos.x < imgSize.x && pos.y >= 0 && pos.y < imgSize.y)
+                sum += dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
+        }
+
+    return sum;
 }
 
 
 void main()
 {
     uint i = gl_GlobalInvocationID.x;
-
     Agent currAgent_read = agents[i];
     vec2 position = vec2(currAgent_read.x, currAgent_read.y);
+    uint random = hash(uint(position.y * imgSize.y + position.x + hash(i)));
+    float randHalfAngleVal = randomHalfAngle(position, i, random);
+    bool isOOB = false;
 
-    agents[i].angle = outOfBounds_RandomAngle(position, agents[i].angle);
+    // OOB check
+    if (position.x < 0)
+    {
+        position.x = 0;
+        randHalfAngleVal += PI + HALF_PI;
+        isOOB = true;
+    }
+    else if (position.x > imgSize.x)
+    {
+        position.x = imgSize.x;
+        randHalfAngleVal += HALF_PI;
+        isOOB = true;
+    }
+    else if (position.y < 0)
+    {
+        position.y = 0;
+        isOOB = true;
+    }
+    else if (position.y > imgSize.y)
+    {
+        position.y = imgSize.y;
+        randHalfAngleVal += PI;
+        isOOB = true;
+    }
+    
+    if (isOOB) 
+    {
+        if (randHalfAngleVal > TWO_PI) { randHalfAngleVal -= TWO_PI; }
+        agents[i].angle = randHalfAngleVal;
+    }
 
-    vec2 direction = vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
+    vec2 direction = angleToVector(currAgent_read.angle); // vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
     vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
 
-    position = hash(uvec3(1, 1, 1))
+    barrier();
 
     position += direction * agentMovmentSpeed * deltaTime;
 
     // position = outOfBounds_WrapArround(position);
+
+    float weightForward = sense(currAgent_read, 0, agentColor);
+    float weightLeft = sense(currAgent_read, sensorAngleSpacing, agentColor);
+    float weightRight = sense(currAgent_read, -sensorAngleSpacing, agentColor);
+
+    float randomSteerStrength = scaleRantomTo01(random);
+
+    if (weightForward > weightLeft && weightForward > weightRight) {}
+
+    else if (weightForward < weightLeft && weightForward < weightRight)
+        agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
+
+    else if (weightRight > weightLeft)
+        agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
+
+    else if (weightLeft > weightRight)
+        agents[i].angle += randomSteerStrength * agentTurnSpeed * deltaTime;
 
     agents[i].x = position.x;
     agents[i].y = position.y;

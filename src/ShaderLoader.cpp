@@ -108,6 +108,12 @@ void ShaderLoader::setVec4(const std::string& name, float v1, float v2, float v3
 	glUniform4f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3, v4);
 };
 
+void ShaderLoader::setVec3(const std::string& name, float v1, float v2, float v3) const
+{
+	glUniform3f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3);
+};
+
+
 void ShaderLoader::setUniformBufferSubData(GLintptr offset, GLsizeiptr size, void* data) {
 	glBindBuffer(GL_UNIFORM_BUFFER, ID);
 	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);

@@ -26,6 +26,8 @@ Window_GLFW::Window_GLFW(int width, int height, std::string title, bool fullscre
 	};
 	glfwMakeContextCurrent(w);
 
+	glfwSetWindowPos(w, 50, 50);
+
 	w_win = w;
 	w_winWidth = width;
 	w_winHeight = height;
