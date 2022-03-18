@@ -10,29 +10,91 @@
 #include "Agent.h"
 
 // consts
-constexpr auto WINDOW_WIDTH = 1700; // 960
-constexpr auto WINDOW_HEIGHT = 900; // 540
 constexpr auto WINDOW_NAME = "Physarum Simulation.";
 constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\VertexShader.vert.shader";
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
-// simulation settings
-constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;		// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 0.1f;	// higher value = trails evaporate faster
-// Agent settings
-constexpr auto AGENT_movmentSpeed = 50.0f;
-constexpr auto AGENT_turnSpeed = 20.0;
-constexpr auto AGENT_sensorOffsetDst = 16.0;
-constexpr auto AGENT_sensorAngleSpacing = 0.6;
-constexpr auto AGENT_sensorSize = 3;
 
 /*
-	Due to efficency reasons, the minimum number of agents is 64. This is because work groups are 
-	allocated in blocks divisable by 64 to improve the efficency and maximum count of aganets. Any
-	less than 64 agents and no agents will be rendered, as the dispached workgroup size will be 0.
+	Due to efficency reasons, the minimum number of agents is 64 and needs to be a multiple of 64.
+	This is because work groups are allocated in blocks divisable by 64 to improve the efficency
+	and maximum count of aganets. Any less than 64 agents and no agents will be rendered, as the
+	dispached workgroup size will be 0.
+	Eg: const size_t NUMBER_OF_AGENTS = 64;
 */
-const size_t NUMBER_OF_AGENTS = 8192;
+// ---------- simulation settings:  ---------- 
+constexpr auto WINDOW_IS_FULLSCREEN = false;
+constexpr auto WINDOW_WIDTH = 1830;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_HEIGHT = 960;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
+constexpr auto AGENT_movmentSpeed = 40.0f;
+constexpr auto AGENT_turnSpeed = 50.0f;
+constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
+constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
+size_t NUMBER_OF_AGENTS = 80000;
+
+/*
+
+//// ---------- simulation settings: First ever network!!! ---------- 
+//constexpr auto WINDOW_IS_FULLSCREEN = false;
+//constexpr auto WINDOW_WIDTH = 1200;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto WINDOW_HEIGHT = 800;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
+//constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
+//constexpr auto AGENT_movmentSpeed = 40.0f;
+//constexpr auto AGENT_turnSpeed = 50.0f;
+//constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
+//constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;			// FL and FR sensor angle difference from F sensor
+//constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
+//const size_t NUMBER_OF_AGENTS = 80000;
+
+
+//// ---------- simulation settings: some following behaviour ---------- 
+//constexpr auto WINDOW_IS_FULLSCREEN = false;
+//constexpr auto WINDOW_WIDTH = 1200;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto WINDOW_HEIGHT = 800;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;		// higher value = shorter trail
+//constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
+//constexpr auto AGENT_movmentSpeed = 50.0f;
+//constexpr auto AGENT_turnSpeed = 3.1f;
+//constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
+//constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;			// FL and FR sensor angle difference from F sensor
+//constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
+//const size_t NUMBER_OF_AGENTS = 80000;
+
+
+//// ---------- simulation settings: CharacteristicsOfPhysarum.pdf ---------- 
+//constexpr auto WINDOW_IS_FULLSCREEN = false;
+//constexpr auto WINDOW_WIDTH = 1024;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto WINDOW_HEIGHT = 576;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto TRAILMAP_trailDiffuseSpeed = 50.0f;		// higher value = shorter trail
+//constexpr auto TRAILMAP_trailEvaporationSpeed = 0.9f;	// higher value = trails evaporate faster
+//constexpr auto AGENT_movmentSpeed = 10.0f;
+//constexpr auto AGENT_turnSpeed = 45.0f;
+//constexpr auto AGENT_sensorOffsetDst = 9.0f;
+//constexpr auto AGENT_sensorAngleSpacing = 22.5f;
+//constexpr auto AGENT_sensorSize = 1.0f;
+//const size_t NUMBER_OF_AGENTS = 35389;
+
+
+//// ---------- simulation settings: GitHub Pysarum Sim ---------- 
+//constexpr auto WINDOW_IS_FULLSCREEN = true;
+//constexpr auto WINDOW_WIDTH = 1920;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto WINDOW_HEIGHT = 1080;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+//constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;
+//constexpr auto TRAILMAP_trailEvaporationSpeed = 0.9f;
+//constexpr auto AGENT_movmentSpeed = 50.0f;
+//constexpr auto AGENT_turnSpeed = 100.0f;
+//constexpr auto AGENT_sensorOffsetDst = 16.0f;	
+//constexpr auto AGENT_sensorAngleSpacing = 0.6f;
+//constexpr auto AGENT_sensorSize = 3.0f;
+//const size_t NUMBER_OF_AGENTS = 131072;
+
+*/
+
 
 /*
 	This code was adapted using the following resources:
@@ -54,9 +116,11 @@ int main()
 {
 	srand((unsigned)(time(NULL)));
 
-	AgentSim agentSim = AgentSim(WINDOW_WIDTH, WINDOW_HEIGHT, NUMBER_OF_AGENTS);
+	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
 
-	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME, false, 0);
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::POINT);
+	
+	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
@@ -83,7 +147,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
 	glBindImageTexture(0, inp_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
 	// output texture
@@ -94,7 +158,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
 	glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 	// setup buffers for the texture we render
@@ -143,11 +207,11 @@ int main()
 	TrailMapProg.setFloat("trailEvaporationSpeed", TRAILMAP_trailEvaporationSpeed);
 
 	GLuint groups_agent = NUMBER_OF_AGENTS / 64;
-	GLuint groups_x = WINDOW_WIDTH / 8;
-	GLuint groups_y = WINDOW_HEIGHT / 8;
+	GLuint groups_x = window.getWidth() / 8;
+	GLuint groups_y = window.getHeight() / 8;
 
-	float DEBUG_agentTurnSpeed = 0.0;
-
+	float DEBUG_uniform = 0.0;
+	float deltaT = 0.0f;
 	// ------------------------------------------------------------
 	// - Do we strictly need to bind and unbind the ShaderStorageBuffer each loop?
 	// - Is this where we can interact with gl image buffers? 
@@ -160,26 +224,27 @@ int main()
 	{
 		// input
 		window.active();
-		float deltaT = window.getDeltaTime();
+		deltaT = window.getDeltaTime();
+		
+		// std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
+
 		// debug_newAngle += 0.1f * deltaT;
 		// if (debug_newAngle > TWO_PI) { debug_newAngle = 0.0f; }
 		// Update agent movement
 		AgentMovmentProg.use();
 		AgentMovmentProg.setFloat("deltaTime", deltaT);
 		AgentMovmentProg.setFloat("randomSeed", static_cast <float> (rand()));
-		// debug
-		/*AgentMovmentProg.setFloat("agentTurnSpeed", DEBUG_agentTurnSpeed);
-		DEBUG_agentTurnSpeed += 0.001;
-		std::cout << "A_turnSpeed: " << DEBUG_agentTurnSpeed << std::endl;*/
 
 		glDispatchCompute(groups_agent, 1, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+		glFinish();
 
 		// update trail map
 		TrailMapProg.use();
 		TrailMapProg.setFloat("deltaTime", deltaT);
 		glDispatchCompute(groups_x, groups_y, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		glFinish();
 
 		// render Geometry (texture)
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

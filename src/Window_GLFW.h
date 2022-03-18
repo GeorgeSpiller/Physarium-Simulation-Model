@@ -5,7 +5,7 @@
 class Window_GLFW
 {
 public:
-	Window_GLFW(int width, int height, std::string title, bool fullscreen, int swapInterval);
+	Window_GLFW(int width, int height, bool isFullScreen, std::string title, int swapInterval);
 	~Window_GLFW();
 
 	void active();
@@ -23,7 +23,6 @@ private:
 	GLFWwindow* w_win;
 
 	int w_winWidth, w_winHeight;
-
 	float w_deltaTime = 0.0f;
 	float w_previousFrame = 0.0f;
 };

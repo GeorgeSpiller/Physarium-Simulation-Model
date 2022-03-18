@@ -101,7 +101,6 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
             if (pos.x >= 0 && pos.x < imgSize.x && pos.y >= 0 && pos.y < imgSize.y)
                 sum += dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
         }
-
     return sum;
 }
 
@@ -116,62 +115,83 @@ void main()
     bool isOOB = false;
 
     // OOB check
-    if (position.x < 0)
-    {
-        position.x = 0;
-        randHalfAngleVal += PI + HALF_PI;
-        isOOB = true;
-    }
-    else if (position.x > imgSize.x)
-    {
-        position.x = imgSize.x;
-        randHalfAngleVal += HALF_PI;
-        isOOB = true;
-    }
-    else if (position.y < 0)
-    {
-        position.y = 0;
-        isOOB = true;
-    }
-    else if (position.y > imgSize.y)
-    {
-        position.y = imgSize.y;
-        randHalfAngleVal += PI;
-        isOOB = true;
-    }
-    
-    if (isOOB) 
-    {
-        if (randHalfAngleVal > TWO_PI) { randHalfAngleVal -= TWO_PI; }
-        agents[i].angle = randHalfAngleVal;
-    }
+    //if (position.x < 0)
+    //{
+    //    position.x = 0;
+    //    randHalfAngleVal += PI + HALF_PI;
+    //    isOOB = true;
+    //}
+    //else if (position.x > imgSize.x)
+    //{
+    //    position.x = imgSize.x;
+    //    randHalfAngleVal += HALF_PI;
+    //    isOOB = true;
+    //}
+    //else if (position.y < 0)
+    //{
+    //    position.y = 0;
+    //    isOOB = true;
+    //}
+    //else if (position.y > imgSize.y)
+    //{
+    //    position.y = imgSize.y;
+    //    randHalfAngleVal += PI;
+    //    isOOB = true;
+    //}
+    //
+    //if (isOOB) 
+    //{
+    //    if (randHalfAngleVal > TWO_PI) { randHalfAngleVal -= TWO_PI; }
+    //    agents[i].angle = randHalfAngleVal;
+    //}
 
     vec2 direction = angleToVector(currAgent_read.angle); // vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
     vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
 
-    barrier();
-
     position += direction * agentMovmentSpeed * deltaTime;
 
-    // position = outOfBounds_WrapArround(position);
+    position = outOfBounds_WrapArround(position);
 
     float weightForward = sense(currAgent_read, 0, agentColor);
     float weightLeft = sense(currAgent_read, sensorAngleSpacing, agentColor);
     float weightRight = sense(currAgent_read, -sensorAngleSpacing, agentColor);
 
-    float randomSteerStrength = scaleRantomTo01(random);
+    float randomSteerStrength = scaleRantomTo01(random) / 2;
 
-    if (weightForward > weightLeft && weightForward > weightRight) {}
+    //if (weightForward > weightLeft && weightForward > weightRight) 
+    //else if (weightForward < weightLeft && weightForward < weightRight)
+    //    agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
+    //else if (weightRight > weightLeft)
+    //    agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
+    //else if (weightLeft > weightRight)
+    //    agents[i].angle += randomSteerStrength * agentTurnSpeed * deltaTime;
 
+
+    if (weightForward > weightLeft && weightForward > weightRight) 
+    {
+        // stay facing the same direction
+    }
     else if (weightForward < weightLeft && weightForward < weightRight)
-        agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
-
-    else if (weightRight > weightLeft)
+    {   /// rotate randomly left or right
+        //agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
+        if (randomSteerStrength > 0.5)
+        {
+            agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
+        }
+        else
+        {
+            agents[i].angle += randomSteerStrength * agentTurnSpeed * deltaTime;
+        }
+    }
+    else if (weightRight > weightLeft) 
+    {
         agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
-
-    else if (weightLeft > weightRight)
+    }
+    else if (weightLeft > weightRight) 
+    {
         agents[i].angle += randomSteerStrength * agentTurnSpeed * deltaTime;
-
+    }
+    
     agents[i].x = position.x;
     agents[i].y = position.y;
 

@@ -1,3 +1,3 @@
 ﻿  Application.cpp
-D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation\PhysarumSimulation\src\Application.cpp(139,115): warning C4305: 'argument': truncation from 'const double' to 'float'
+D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation\PhysarumSimulation\src\Application.cpp(209,45): warning C4267: 'initializing': conversion from 'size_t' to 'GLuint', possible loss of data
   PhysarumSimulation.vcxproj -> D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation\PhysarumSimulation\x64\Debug\PhysarumSimulation.exe
