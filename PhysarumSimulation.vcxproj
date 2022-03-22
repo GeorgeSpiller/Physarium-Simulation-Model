@@ -149,6 +149,8 @@
     <ClCompile Include="src\Agent.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\CompShaderLoader.cpp" />
+    <ClCompile Include="src\PrePatterning.cpp" />
+    <ClCompile Include="src\PrePatterningImage.cpp" />
     <ClCompile Include="src\ShaderLoader.cpp" />
     <ClCompile Include="src\Window_GLFW.cpp" />
   </ItemGroup>
@@ -157,6 +159,9 @@
     <ClInclude Include="src\Depreciated\Agent.h" />
     <ClInclude Include="src\CompShaderLoader.h" />
     <ClInclude Include="src\Depreciated\TrailMap.h" />
+    <ClInclude Include="src\PrePatterning.h" />
+    <ClInclude Include="src\PrePatterningImage.h" />
+    <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Window_GLFW.h" />
   </ItemGroup>
   <ItemGroup>

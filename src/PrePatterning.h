@@ -1,4 +1,5 @@
 #include <vector>
+#include "Agent.h"
 
 struct Stimuli
 {
@@ -15,10 +16,12 @@ public:
 	PrePatterning(std::vector<Stimuli> inputStimuli,  size_t numStimuli);
 
 	void addStimuliNode(Stimuli newStimuli);
+	void writeToImage();
 
 	const std::vector<Stimuli>& getStimuli() const { return stimuli; }
 
 private:
 	size_t numStimuli;
 	std::vector<Stimuli> stimuli;
+
 };

@@ -1,3 +1,4 @@
+#include <glad/glad.h>
 #include "PrePatterning.h"
 
 PrePatterning::PrePatterning(std::vector<Stimuli> inputStimuli, size_t numStimuli)
@@ -18,5 +19,15 @@ void PrePatterning::addStimuliNode(Stimuli newStimuli)
 	stimuli.at(numStimuli-1) = { newStimuli.size, newStimuli.pos_x, newStimuli.pos_y };
 }
 
+void PrePatterning::writeToImage() 
+{
+	float stimuliPixelColours[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+
+	for (int i = 0; i < numStimuli; i++) 
+	{
+		glTexSubImage2D(GL_TEXTURE_2D, 0, stimuli[i].pos_x, stimuli[i].pos_y, stimuli[i].size, stimuli[i].size, GL_RGBA, GL_FLOAT, stimuliPixelColours);
+	}
+	
+}
 
 

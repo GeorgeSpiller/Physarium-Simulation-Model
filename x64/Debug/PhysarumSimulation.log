@@ -1,3 +1,2 @@
 ﻿  Application.cpp
-D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation\PhysarumSimulation\src\Application.cpp(223,45): warning C4267: 'initializing': conversion from 'size_t' to 'GLuint', possible loss of data
   PhysarumSimulation.vcxproj -> D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation\PhysarumSimulation\x64\Debug\PhysarumSimulation.exe

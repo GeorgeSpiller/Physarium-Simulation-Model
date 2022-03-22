@@ -8,7 +8,10 @@
 #include "CompShaderLoader.h"
 #include "Window_GLFW.h"
 #include "Agent.h"
-#include "PrePatterning.h"
+// #include "PrePatterningImage.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 // consts
@@ -36,7 +39,7 @@ constexpr auto AGENT_turnSpeed = 50.0f;
 constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
 constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
 constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
-size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
+GLuint NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 
 /*
 
@@ -136,7 +139,11 @@ int main()
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
 
-	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::RECT);
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
+
+	// std::vector<Stimuli> inputStimuli = { {1.0f, 0.0f, 0.0f} };
+	// PrePatterning prePattern = PrePatterning(inputStimuli, 1);
+
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
@@ -154,6 +161,18 @@ int main()
 	AgentMovmentProg.useShaderStorageBuffer(NUMBER_OF_AGENTS * sizeof(Agent), (void*)&agentSim.getAgents()[0]);
 
 	// create an input and output texture to read/write and write only to, respectivly
+
+
+	/*
+		TODO:
+		- Debug: find out where the agents are:
+		1. Behind the texture? Change size of texture? render order?
+		2. Not rendering dues to different formats (tex being GL_UNSIGNED_BYTE) and tex uniform for 
+			shader being rgba32f (23 float)
+	*/
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\prepat.png", &width, &height, &nrChannels, 0);
+
 	unsigned int inp_TextureID, out_TextureID;
 	// input texture
 	glGenTextures(1, &inp_TextureID);
@@ -163,8 +182,20 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	glBindImageTexture(0, inp_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
+	// glBindImageTexture(0, inp_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	if (data)
+	{
+		std::cout << "attempting glTexImage2D..." << std::endl;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		std::cout << "Finished, GL Error stack: " << glGetError() << std::endl;
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
 
 	// output texture
 	glGenTextures(1, &out_TextureID);
@@ -174,18 +205,21 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
+	// glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	if (data)
+	{
+		// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, prePatternImage.getWidth(), prePatternImage.getHeight(), 0, GL_RGBA, GL_FLOAT, prePatternImage.getImageData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
 
 	// setup buffers for the texture we render
-	// ------------------------------------------------------------
-	// believe the movment issue may involve the seting up of the buffers bellow
-	// - Where does it read output from comput shader to render agent positions?
-	// - Does this geometry get textured by the trail map compute shader?
-	// - If not, where does it get shaded?
-	// - What gets passed to the vert and frag shaders?
-	// - Where can i access the output of the AgentMovment and TrailMap Compute?
-	// ------------------------------------------------------------
 	GLuint tex_VAO, tex_VBO = 0;
 	glGenBuffers(1, &tex_VBO);
 	glGenVertexArrays(1, &tex_VAO);
@@ -213,6 +247,8 @@ int main()
 	glBindVertexArray(tex_VAO);
 
 	// set uniform settings (that are constant) for agentMovment compute and trailMap compute
+	// prePattern.writeToImage();
+
 	AgentMovmentProg.use();
 	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
 	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeed);
@@ -228,13 +264,9 @@ int main()
 
 	float DEBUG_uniform = 0.0;
 	float deltaT = 0.0f;
-	// ------------------------------------------------------------
-	// - Do we strictly need to bind and unbind the ShaderStorageBuffer each loop?
-	// - Is this where we can interact with gl image buffers? 
-	// - Where does the TrailMap compute write to? Where is outImg stored/refferenced to here?
-	// - Can we replace the vert array of the texture quad to render using index array instead?
-	// - How does the compute shader know where out out_TextureID is?
-	// ------------------------------------------------------------
+
+	std::cout << "Entering Render Loop." << std::endl;
+
 	// -------------------- main render loop --------------------
 	while (!window.windowShouldClose())
 	{
@@ -244,12 +276,9 @@ int main()
 		
 		// std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
 
-		// debug_newAngle += 0.1f * deltaT;
-		// if (debug_newAngle > TWO_PI) { debug_newAngle = 0.0f; }
 		// Update agent movement
 		AgentMovmentProg.use();
 		AgentMovmentProg.setFloat("deltaTime", deltaT);
-		AgentMovmentProg.setFloat("randomSeed", static_cast <float> (rand()));
 
 		glDispatchCompute(groups_agent, 1, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);

@@ -19,7 +19,6 @@ layout(std430, binding = 2) buffer AgentBuffer
 
 // these uniforms change each frame, are the same for all agents
 uniform float deltaTime;
-uniform float randomSeed;
 // these uniforms are constant, are the same for all agents
 uniform float agentMovmentSpeed;
 uniform vec3 agentSensorSettings;
@@ -115,7 +114,7 @@ void main()
     bool isOOB = false;
 
     vec2 direction = angleToVector(currAgent_read.angle); // vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
-    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
+    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0); // (51, 153, 102)
 
     position += direction * agentMovmentSpeed * deltaTime;
 
