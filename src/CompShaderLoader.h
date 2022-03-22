@@ -29,5 +29,6 @@ public:
 
 private:
 	GLuint BuffObjNameArry = 0;
+	GLuint BuffObjStaticArry = 1;
 };
 //#endif

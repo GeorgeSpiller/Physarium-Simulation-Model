@@ -114,37 +114,6 @@ void main()
     float randHalfAngleVal = randomHalfAngle(position, i, random);
     bool isOOB = false;
 
-    // OOB check
-    //if (position.x < 0)
-    //{
-    //    position.x = 0;
-    //    randHalfAngleVal += PI + HALF_PI;
-    //    isOOB = true;
-    //}
-    //else if (position.x > imgSize.x)
-    //{
-    //    position.x = imgSize.x;
-    //    randHalfAngleVal += HALF_PI;
-    //    isOOB = true;
-    //}
-    //else if (position.y < 0)
-    //{
-    //    position.y = 0;
-    //    isOOB = true;
-    //}
-    //else if (position.y > imgSize.y)
-    //{
-    //    position.y = imgSize.y;
-    //    randHalfAngleVal += PI;
-    //    isOOB = true;
-    //}
-    //
-    //if (isOOB) 
-    //{
-    //    if (randHalfAngleVal > TWO_PI) { randHalfAngleVal -= TWO_PI; }
-    //    agents[i].angle = randHalfAngleVal;
-    //}
-
     vec2 direction = angleToVector(currAgent_read.angle); // vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
     vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
 
@@ -157,15 +126,6 @@ void main()
     float weightRight = sense(currAgent_read, -sensorAngleSpacing, agentColor);
 
     float randomSteerStrength = scaleRantomTo01(random) / 2;
-
-    //if (weightForward > weightLeft && weightForward > weightRight) 
-    //else if (weightForward < weightLeft && weightForward < weightRight)
-    //    agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
-    //else if (weightRight > weightLeft)
-    //    agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
-    //else if (weightLeft > weightRight)
-    //    agents[i].angle += randomSteerStrength * agentTurnSpeed * deltaTime;
-
 
     if (weightForward > weightLeft && weightForward > weightRight) 
     {
@@ -197,50 +157,3 @@ void main()
 
     imageStore(imgOutput, ivec2(position), agentColor);
 }
-
-/*
-*     if (position.x < 100) 
-    {
-        if (agentAngle > PI && agentAngle < PI + HALF_PI)
-        {   // if approaching from above the surface normal
-            agents[i].angle = calculateIncedenceOnWestWall(agentAngle, false);
-        }
-        else if (agentAngle > HALF_PI && agentAngle < PI)
-        {
-            agents[i].angle = calculateIncedenceOnWestWall(agentAngle, true);
-        }
-    }
-    else if (position.x > imgSize.x - 100)
-    {
-        if (agentAngle > HALF_PI && agentAngle < PI)
-        {   // if approaching from above the surface normal
-            AgentAngleOffset = PI + (TWO_PI - agentAngle);
-            agents[i].angle = calculateIncedenceOnWestWall(agentAngle, false);
-        }
-        else if (agentAngle > PI && agentAngle < PI + HALF_PI)
-        {
-            agents[i].angle = calculateIncedenceOnWestWall(agentAngle, true);
-        }
-    }
-* 
-* 
-float calculateIncedenceOnWestWall(float agentAngle, bool isFromBot)
-{
-    float incedentAngle = 0.0;
-    float tmp = 0.0;
-
-    if (!isFromBot)
-    {
-        // if approaching from above the surface normal
-        tmp = (PI + HALF_PI) - agentAngle;
-        incedentAngle = PI - (tmp + HALF_PI);
-        return (PI + HALF_PI) + incedentAngle;
-    }
-    else
-    {   // if approaching from bellow the sureface normal
-        tmp = agentAngle - HALF_PI;
-        incedentAngle = PI - (tmp + HALF_PI);
-        return incedentAngle;
-    }
-}
-*/

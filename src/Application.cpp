@@ -8,6 +8,8 @@
 #include "CompShaderLoader.h"
 #include "Window_GLFW.h"
 #include "Agent.h"
+#include "PrePatterning.h"
+
 
 // consts
 constexpr auto WINDOW_NAME = "Physarum Simulation.";
@@ -23,7 +25,22 @@ constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documen
 	dispached workgroup size will be 0.
 	Eg: const size_t NUMBER_OF_AGENTS = 64;
 */
-// ---------- simulation settings:  ---------- 
+// ---------- simulation settings: Poster background effects ---------- 
+constexpr auto WINDOW_IS_FULLSCREEN = false;
+constexpr auto WINDOW_WIDTH = 1782;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_HEIGHT = 960;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
+constexpr auto AGENT_movmentSpeed = 40.0f;
+constexpr auto AGENT_turnSpeed = 50.0f;
+constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
+constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
+size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
+
+/*
+
+// ---------- simulation settings:  Experimetation, good growth behaviours----------
 constexpr auto WINDOW_IS_FULLSCREEN = false;
 constexpr auto WINDOW_WIDTH = 1830;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
 constexpr auto WINDOW_HEIGHT = 960;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
@@ -34,9 +51,8 @@ constexpr auto AGENT_turnSpeed = 50.0f;
 constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
 constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
 constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
-size_t NUMBER_OF_AGENTS = 80000;
+size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 
-/*
 
 //// ---------- simulation settings: First ever network!!! ---------- 
 //constexpr auto WINDOW_IS_FULLSCREEN = false;
@@ -95,7 +111,6 @@ size_t NUMBER_OF_AGENTS = 80000;
 
 */
 
-
 /*
 	This code was adapted using the following resources:
 	
@@ -103,24 +118,25 @@ size_t NUMBER_OF_AGENTS = 80000;
 	https://learnopengl.com/Getting-started/Shaders
 	https://twitter.com/JoeyDeVriez
 
-	Usful repo:
-	https://github.com/riccardo-franchi/Physarum-Simulation
+	Usful repo of Physarum model based in unity:
+	https://github.com/SebLague/Slime-Simulation
 
 	OpenGL SuperBible (G. Sellers, R. S. Wright, N. Haemel):
 	Compute Shaders intro: p467
 	Compute Shader Flocking Behaviour: p492
+
 */
 
 
 int main()
 {
+
 	srand((unsigned)(time(NULL)));
 
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
-
-	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::POINT);
-	
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
+
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::RECT);
 
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;

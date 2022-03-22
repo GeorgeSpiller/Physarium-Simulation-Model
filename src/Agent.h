@@ -14,7 +14,7 @@ struct Agent
 
 enum class SpawnMode
 {
-	RANDOM = 0, CIRCLE = 1, POINT = 2, POINT2 = 3, POINT4 = 4
+	RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
 };
 
 class AgentSim
