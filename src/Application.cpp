@@ -8,9 +8,7 @@
 #include "CompShaderLoader.h"
 #include "Window_GLFW.h"
 #include "Agent.h"
-// #include "PrePatterningImage.h"
-
-#define STB_IMAGE_IMPLEMENTATION
+#include "LoadPrePattern.h"
 #include "stb_image.h"
 
 
@@ -30,15 +28,15 @@ constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documen
 */
 // ---------- simulation settings: Poster background effects ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
-constexpr auto WINDOW_WIDTH = 1782;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto WINDOW_HEIGHT = 960;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
-constexpr auto AGENT_movmentSpeed = 40.0f;
-constexpr auto AGENT_turnSpeed = 50.0f;
-constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
-constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
-constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
+constexpr auto WINDOW_WIDTH = 1782;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_HEIGHT = 960;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;			// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;		// higher value = trails evaporate faster
+constexpr auto AGENT_movmentSpeed = 40.0f;					// how fast the agents move each frame (NOT how fast the simulation runs)
+constexpr auto AGENT_turnSpeed = 50.0f;						// turn speed in degrees
+constexpr auto AGENT_sensorOffsetDst = 6.0f;				// how far away the sensors (F) are from agent
+constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;	// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorSize = 3.0f;						// size of sesor samplying area
 GLuint NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 
 /*
@@ -139,6 +137,7 @@ int main()
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
 
+	// SpawnModes: RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
 	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
 
 	// std::vector<Stimuli> inputStimuli = { {1.0f, 0.0f, 0.0f} };
@@ -162,7 +161,6 @@ int main()
 
 	// create an input and output texture to read/write and write only to, respectivly
 
-
 	/*
 		TODO:
 		- Debug: find out where the agents are:
@@ -170,54 +168,56 @@ int main()
 		2. Not rendering dues to different formats (tex being GL_UNSIGNED_BYTE) and tex uniform for 
 			shader being rgba32f (23 float)
 	*/
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\prepat.png", &width, &height, &nrChannels, 0);
 
 	unsigned int inp_TextureID, out_TextureID;
-	// input texture
+	// unsigned int out_TextureID = 1;
+	//int imageWidth;
+	//int imageHeight;
+	//int numberOfChannels;
+	//unsigned char* prepatternDataRaw;
+	//prepatternDataRaw = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\prepat.png", &imageWidth, &imageHeight, &numberOfChannels, 0);
+
+	LoadPrePattern prePattern = LoadPrePattern(NULL, &inp_TextureID);
+	int width = prePattern.getWidth();
+	int height = prePattern.getHeight();
+	unsigned char* rawData = prePattern.getDataRaw();
+	float* floatData = prePattern.getUnsignedToFloats();
+
+	// prePattern.initalizeTexture();
+
 	glGenTextures(1, &inp_TextureID);
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, inp_TextureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	// glBindImageTexture(0, inp_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-	if (data)
-	{
-		std::cout << "attempting glTexImage2D..." << std::endl;
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
 
-		std::cout << "Finished, GL Error stack: " << glGetError() << std::endl;
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, floatData);
+	glBindImageTexture(2, inp_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 
-	// output texture
+
+
 	glGenTextures(1, &out_TextureID);
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, out_TextureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	// glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-	if (data)
-	{
-		// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, prePatternImage.getWidth(), prePatternImage.getHeight(), 0, GL_RGBA, GL_FLOAT, prePatternImage.getImageData());
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		glBindImageTexture(0, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
+	// -- uncomment to render texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
+	glBindImageTexture(1, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);	
+
+	////// output texture
+	//glGenTextures(1, &out_TextureID);
+	//glBindTexture(GL_TEXTURE_2D, out_TextureID);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
+	//glBindImageTexture(1, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
 
 	// setup buffers for the texture we render
 	GLuint tex_VAO, tex_VBO = 0;
@@ -288,8 +288,8 @@ int main()
 		TrailMapProg.use();
 		TrailMapProg.setFloat("deltaTime", deltaT);
 		glDispatchCompute(groups_x, groups_y, 1);
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-		glFinish();
+		// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		// glFinish();
 
 		// render Geometry (texture)
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -305,7 +305,6 @@ int main()
 		// events
 		// ----------
 		window.nextRender();
-
 	}
 
 	std::cout << "GL error stack: " << glGetError() << std::endl;
@@ -315,6 +314,7 @@ int main()
 	glDeleteBuffers(1, &tex_VBO);
 	glDeleteVertexArrays(1, &tex_VAO);
 
+	free(floatData);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------

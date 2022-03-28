@@ -11,7 +11,7 @@ struct Agent
 };
 
 layout(local_size_x = 64, local_size_y = 1) in;
-layout(rgba32f) uniform image2D imgOutput;
+layout(rgba32f, binding = 1) uniform image2D imgOutput;
 layout(std430, binding = 2) buffer AgentBuffer
 {
     Agent agents[];
@@ -98,6 +98,7 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
         {
             ivec2 pos = sensorCenter + ivec2(x_off, y_off);
             if (pos.x >= 0 && pos.x < imgSize.x && pos.y >= 0 && pos.y < imgSize.y)
+                // sum += dot(imageLoad(imgInput, pos), agentColor * 2 - 1);
                 sum += dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
         }
     return sum;

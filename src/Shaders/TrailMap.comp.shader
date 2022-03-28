@@ -1,8 +1,10 @@
+
 #version 440 core
 
 layout(local_size_x = 8, local_size_y = 8) in;
-layout(rgba32f) uniform readonly image2D imgInput;
-layout(rgba32f) uniform writeonly image2D imgOutput;
+layout(rgba32f, binding = 1) uniform readonly image2D imgInput;
+layout(rgba8, binding = 2) uniform readonly image2D imgPrePattern;
+layout(rgba32f, binding = 1) uniform writeonly image2D imgOutput; 
 
 uniform float deltaTime;
 uniform float trailDiffuseSpeed;
@@ -13,7 +15,7 @@ void main()
     ivec2 imgSize = imageSize(imgInput);
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
     vec4 originalValue = imageLoad(imgInput, pixelCoords);
-    
+
     // vec4 outputValue = vec4(originalValue.r - trailDiffuse, originalValue.g - trailDiffuse, originalValue.b - trailDiffuse, 1.0);
    /* outputValue.r = max(outputValue.r, 0);
     outputValue.g = max(outputValue.g, 0);
@@ -33,18 +35,28 @@ void main()
             {
                 if (currCoord.y > 0 && currCoord.y < imgSize.y)
                 {
+                    sum += imageLoad(imgPrePattern, currCoord);
                     sum += imageLoad(imgInput, currCoord);
                     sampleAmount++;
                 }
             }
         }
     }
-    vec4 meanKernel = sum / sampleAmount;
+    vec4 meanKernel = sum / (sampleAmount * 2);
 
     // Linear interpolation(x, y) weight = a : x * (1 - a) + y * a;
     vec4 diffuse = originalValue * (1 - (trailDiffuseSpeed * deltaTime)) + meanKernel * (trailDiffuseSpeed * deltaTime);
     vec4 diffEvap = diffuse - (trailEvaporationSpeed * deltaTime);
     vec4 outputValue = vec4(diffEvap.r, diffEvap.g, diffEvap.b, 1.0);
+
+    ivec2 texel = ivec2(pixelCoords.x, pixelCoords.y);
+    vec4 prePatternTexel = imageLoad(imgPrePattern, currCoord);
+    
+    if (prePatternTexel.r > 0 && prePatternTexel.g > 0 && prePatternTexel.b > 0)
+    {
+        outputValue = prePatternTexel;
+    }
+
 
     imageStore(imgOutput, pixelCoords, outputValue);
 }

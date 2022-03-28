@@ -20,10 +20,10 @@ enum class SpawnMode
 class AgentSim
 {
 public:
-	AgentSim() : numAgents(0) {}
+	AgentSim() : numAgents(0) {};
 	AgentSim(int width, int height, size_t numAgents, SpawnMode spawn);
 
-	const std::vector<Agent>& getAgents() const { return agents; }
+	const std::vector<Agent>& getAgents() const { return agents; };
 
 private:
 	size_t numAgents;
