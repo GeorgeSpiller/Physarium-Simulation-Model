@@ -15,7 +15,9 @@ void main()
     ivec2 imgSize = imageSize(imgInput);
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
     vec4 originalValue = imageLoad(imgInput, pixelCoords);
-    vec4 outputValue = imageLoad(imgPrePattern, pixelCoords);
+    vec4 prePatternValue = imageLoad(imgPrePattern, pixelCoords);
+
+    originalValue += prePatternValue;
 
     // 3x3 mean kernel
     vec4 sum = vec4(0.0);
@@ -43,10 +45,7 @@ void main()
     // Linear interpolation(x, y) weight = a : x * (1 - a) + y * a;
     vec4 diffuse = originalValue * (1 - (trailDiffuseSpeed * deltaTime)) + meanKernel * (trailDiffuseSpeed * deltaTime);
     vec4 diffEvap = diffuse - (trailEvaporationSpeed * deltaTime);
-    outputValue = vec4(diffEvap.r, diffEvap.g, diffEvap.b, 1.0);
+    vec4 outputValue = vec4(diffEvap.r, diffEvap.g, diffEvap.b, 1.0);
 
-    vec4 prePatternTexel = imageLoad(imgPrePattern, pixelCoords);
-    vec4 agentMapTexel = imageLoad(imgInput, pixelCoords);
-
-    imageStore(imgOutput, pixelCoords, prePatternTexel); // outputValue
+    imageStore(imgOutput, pixelCoords, outputValue);
 }

@@ -5,9 +5,7 @@ class LoadPrePattern
 public:
 	LoadPrePattern(char * filePath, unsigned int *tex_ID);
 	~LoadPrePattern() { 
-		stbi_image_free(prepatternDataRaw); 
-		delete prepatternDataFloatPointer;
-	
+		stbi_image_free(prepatternDataRaw); 	
 	}; // assertion because of the free
 
 	void initalizeTexture();
@@ -26,6 +24,5 @@ private:
 	int imageHeight;
 	int numberOfChannels;
 	unsigned char* prepatternDataRaw;
-	float* prepatternDataFloatPointer;
 	unsigned int tex_ID;
 };

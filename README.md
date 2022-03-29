@@ -46,7 +46,7 @@ The number of agents to spawn in the simulation. This should always be multiples
 
 
 ## Roadmap
-
+- Change bounds from wrap to bounce random
 - Code clean up, resolving memory leaks
 - Reading model parameters from a json
 - full screen mode

@@ -11,7 +11,7 @@ LoadPrePattern::LoadPrePattern(char* filePath, unsigned int* tex_ID) : tex_ID(*t
 {
 	if (filePath == NULL) 
 	{
-		prepatternDataRaw = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\prepat.png", &imageWidth, &imageHeight, &numberOfChannels, 4);
+		prepatternDataRaw = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\SmallNodeGraphComplex.png", &imageWidth, &imageHeight, &numberOfChannels, 4);
 	}
 	else 
 	{
@@ -55,15 +55,6 @@ float* LoadPrePattern::getUnsignedToFloats()
 
 	dataArray = (float*)malloc(((pixNum * numberOfChannels) + 1) * sizeof(float));
 	if (dataArray == NULL) exit(1);
-
-	//for (int i = 0; i < pixNum * numberOfChannels; i++)
-	//	dataArray[i] = (float)prepatternDataRaw[i];
-
-	//imageWidth = 4;
-	//imageHeight = 4;
-	//numberOfChannels = 2;
-	//pixNum = imageWidth * imageHeight;
-	//std::cout << "DEBUG VALUES: imageWidth: " << imageWidth << ", imageHeight: " << imageHeight << ", numberOfChannels: " << numberOfChannels << ", pixNum: " << pixNum << ", Total float count: " << pixNum * numberOfChannels << std::endl;
 
 	int pixelLocation = 0;
 	int flipVandH = 0;
