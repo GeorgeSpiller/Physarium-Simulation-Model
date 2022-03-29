@@ -15,14 +15,14 @@ To deploy this project run
 
 ## Features
 
-- Fully tuneable parrameters
+- Fully tunable parameters
 - Six spawn modes:
     - RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
-- Agent movment and deposition processed in parallel on the GPU
+- Agent movement and deposition processed in parallel on the GPU
 
-### Parameter Explination:
+### Parameter Explanation:
 **WINDOW_IS_FULLSCREEN**\
-Not fully implemented. If false, WINDOW_WIDTH and WINDOW_HEIGHT is used to size the window. If true, the window size will be 1920 x 1080.\
+Not fully implemented. If false, WINDOW_WIDTH and WINDOW_HEIGHT are used to size the window. If true, the window size will be 1920 x 1080.\
 **WINDOW_WIDTH** \
 If WINDOW_IS_FULLSCREEN is set, this value is ignored. This sets the window width of the simulation. \
 **WINDOW_HEIGHT** \
@@ -38,21 +38,23 @@ The turn speed of each agent in degrees. \
 **AGENT_sensorOffsetDst** \
 How far away the sensors (F) are from each agent. \
 **AGENT_sensorAngleSpacing** \
-The angle difference in degrees, of the FL and FR sensor from F sensor of each agent. \
+The angle difference in degrees of the FL and FR sensor from the F sensor of each agent. \
 **AGENT_sensorSize** \
-The size of sesor samplying area (always square). WARNING: changing this can greatly decrease performance, but will allow each agent to 'see' more of their enviroment, and therefore tends to improve following behaviour. \
+The size of the sensor sampling area (always square). WARNING: changing this can greatly decrease performance, but will allow each agent to 'see' more of their environment, and therefore tends to improve following behavior. \
 **NUMBER_OF_AGENTS** \
-The number of agents to spawn in the simulation. This should always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008.
+The number of agents to spawn in the simulation. This should always be multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008.
 
 
 ## Roadmap
 
 - Code clean up, resolving memory leaks
 - Reading model parameters from a json
-- fullscreen mode
-- Removiing hardcoded file paths
-- Aditional pre-pattern image conversion:
+- full screen mode
+- Removing hardcoded file paths
+- Additional pre-pattern image conversion:
     - support for images with no alpha channel
     - support for images of different pixel color value storage sizes and types.
+
+
 
 
