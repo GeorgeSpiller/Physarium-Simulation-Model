@@ -181,7 +181,7 @@ int main()
 	int width = prePattern.getWidth();
 	int height = prePattern.getHeight();
 	unsigned char* rawData = prePattern.getDataRaw();
-	float* floatData = prePattern.getUnsignedToFloats();
+	float* processedData = prePattern.getUnsignedToFloats();
 
 	// prePattern.initalizeTexture();
 
@@ -192,8 +192,8 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, floatData);
-	glBindImageTexture(2, inp_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, processedData);
+	glBindImageTexture(2, inp_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 
 
@@ -314,7 +314,7 @@ int main()
 	glDeleteBuffers(1, &tex_VBO);
 	glDeleteVertexArrays(1, &tex_VAO);
 
-	free(floatData);
+	free(processedData);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------

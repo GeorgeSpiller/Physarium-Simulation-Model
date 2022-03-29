@@ -48,60 +48,64 @@ float* LoadPrePattern::getUnsignedToFloats()
 	// each pixel consists of 4 interleaved 8-bit components
 
 	int pixNum = imageWidth * imageHeight; // int pixNum = imageWidth * imageHeight * numberOfChannels;
+	float* dataArray;
 
-	std::cout << "Image is, " << pixNum << " pixels, " << pixNum * numberOfChannels << " color values total." << std::endl;
+	std::cout << "Image is " << pixNum << " pixels, " << pixNum * numberOfChannels << " color values total. " <<
+		"It has a width x height of " << imageWidth << "x" << imageHeight << std::endl;
 
-	float* floatArray;
-	//std::vector<float>* floatArray = new std::vector<float>((pixNum * 4));
+	dataArray = (float*)malloc(((pixNum * numberOfChannels) + 1) * sizeof(float));
+	if (dataArray == NULL) exit(1);
 
 	//for (int i = 0; i < pixNum * numberOfChannels; i++)
-	//	floatArray->at(i) = (float)prepatternDataRaw[i];
+	//	dataArray[i] = (float)prepatternDataRaw[i];
 
-	//prePatternPointer = floatArray;
+	//imageWidth = 4;
+	//imageHeight = 4;
+	//numberOfChannels = 2;
+	//pixNum = imageWidth * imageHeight;
+	//std::cout << "DEBUG VALUES: imageWidth: " << imageWidth << ", imageHeight: " << imageHeight << ", numberOfChannels: " << numberOfChannels << ", pixNum: " << pixNum << ", Total float count: " << pixNum * numberOfChannels << std::endl;
 
-	//std::cout << "printing values on first scanline" << std::endl;
-	//int y = 0;
-	//int pixLoc = 0;
-	////for (int y = 0; y < imageHeight; y++) 
-	//{
-	//	for (int x = 0; x < imageWidth; x++) 
-	//	{
-	//		std::cout << "(" << std::flush;
-	//		for (int c = 0; c < numberOfChannels; c++) 
-	//		{
-	//			// formula for getting each pixel:
-	//			// pixel color = (y * imageWidth) + (x * numberOfChannels) + c
-	//			pixLoc = (y * imageWidth) + (x * numberOfChannels) + c;
-	//			std::cout << floatArray->at(pixLoc) << "," << std::flush;
-	//		}
-	//		std::cout << "), " << std::flush;
-	//	}
-	//	std::cout << std::endl;
-	//}
+	int pixelLocation = 0;
+	int flipVandH = 0;
 
+	int scanLineLength = (imageWidth * numberOfChannels);
+	int scanLine = 0;
+	int pixOffset = 0;
+	float data[4] = {0, 0, 0, 0};
 
-	// floatArray.insert(floatArray.end(), &prepatternDataRaw[0], &prepatternDataRaw[dataArraySize]);
+	/*
+		Read data (unsigned char*) from prepatternDataRaw, into a float array. 
+		During this reading process the image is flipped vertically and horrisontally.
+	*/
+	for (int y = 0; y < imageHeight; y++)
+	{
+		for (int x = 0; x < imageWidth; x++)
+		{
+			// the index of the curent scan line that is being read
+			scanLine = (y * scanLineLength);
+			// the pixel index offset of how far along that scan line we are reading
+			pixOffset = (x * numberOfChannels);
+			// the location of the current pixel we are reading
+			pixelLocation = scanLine + pixOffset;
 
-	floatArray = (float*)malloc(((pixNum * numberOfChannels) + 1) * sizeof(float));
-	if (floatArray == NULL) exit(1);
-
-	for (int i = 0; i < pixNum * numberOfChannels; i++)
-		floatArray[i] = (float)prepatternDataRaw[i];
-
-
-	//std::cout << "printing values" << std::endl;
-	//for (int y = 0; y < imageHeight; y++) 
-	//{
-	//	for (int x = 0; x < imageWidth; x++) 
-	//	{
-	//		for (int c = 0; c < numberOfChannels; c++) 
-	//		{
-	//			// formula for getting each pixel:
-	//			// pixel color = (y * imageWidth) + (x * numberOfChannels) + c
-	//		}
-	//	}
-	//}
-	return floatArray;
+			// for each individual color channel (we do not want to flip these values)
+			for (int c = 0; c < numberOfChannels; c++)
+			{
+				/*
+				Read each pixel from the end of the scan line to the begining (but read each channel value for
+				said pixel in-order). This flips the image horrisontally.
+				We also normalise the (int) values and cast them to floats.
+				*/
+				data[c] = (float)prepatternDataRaw[((y+1) * scanLineLength) - pixOffset + c] / 255;
+				/*
+				Write the (now horrisontally flipped) read pixel value to the final float array,
+				but write each scanline from the end of the array towards start. This flips the image virtically. 
+				*/
+				dataArray[((pixNum * numberOfChannels) - pixelLocation - numberOfChannels) + c] = data[c];
+			}
+		}
+	}
+	return dataArray;
 }
 
 
@@ -130,10 +134,4 @@ void LoadPrePattern::initTexture()
 		std::cout << "Failed to load texture: inp_Texture (" << tex_ID << ")" << std::endl;
 		exit(-1);
 	}
-}
-void LoadPrePattern::lpp_RGB_UnsignedByte() 
-{
-}
-void LoadPrePattern::lpp_RGBA_UnsignedByte() 
-{
 }
