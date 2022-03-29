@@ -138,7 +138,7 @@ int main()
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
 
 	// SpawnModes: RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
-	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::POINT);
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
 
 	// std::vector<Stimuli> inputStimuli = { {1.0f, 0.0f, 0.0f} };
 	// PrePatterning prePattern = PrePatterning(inputStimuli, 1);
