@@ -127,7 +127,6 @@ size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016,
 	OpenGL SuperBible (G. Sellers, R. S. Wright, N. Haemel):
 	Compute Shaders intro: p467
 	Compute Shader Flocking Behaviour: p492
-
 */
 
 
@@ -144,7 +143,7 @@ int main()
 	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
 	// SpawnModes: RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
-	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::RANDOM);
 
 	// Set up shader files
 	const char* vertexShaderFile = VERTEX_SHADER_FILE_LOCATION;
@@ -214,7 +213,7 @@ int main()
 
 	float deltaT = 0.0f;
 
-	std::cout << " ---------- Entering Render Loop ---------- " << std::endl;
+	std::cout << std::endl << " ---------- Entering Render Loop ---------- " << std::endl;
 	// -------------------- main render loop --------------------
 	while (!window.windowShouldClose())
 	{
@@ -254,6 +253,7 @@ int main()
 		// ----------
 		window.nextRender();
 	}
+	std::cout << std::endl;
 	std::cout << " ---------- End Render Loop ---------- " << std::endl;
 	std::cout << "GL error stack: " << glGetError() << std::endl;
 	

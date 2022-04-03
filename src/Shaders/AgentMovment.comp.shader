@@ -1,6 +1,4 @@
 #version 440 core
-#define FLT_MAX 3.402823466e+38
-#define TWO_PI  6.2831853
 #define PI      3.1415926
 #define HALF_PI 1.5707963
 
@@ -50,44 +48,15 @@ vec2 angleToVector(float angle)
     return vec2(cos(angle), sin(angle));
 }
 
-
-vec2 outOfBounds_WrapArround(vec2 pos) 
+float randomHalfAngle(uint rand)
 {
-    if (pos.x < 0)
-    {
-        pos.x = imgSize.x;
-    }
-    else if (pos.x > imgSize.x)
-    {
-        pos.x = 0;
-    }
-    else if (pos.y < 0)
-    {
-        pos.y = imgSize.y;
-    }
-    else if (pos.y > imgSize.y)
-    {
-        pos.y = 0;
-    }
-    return pos;
-}
-
-float randomHalfAngle(vec2 pos, uint AgentIndex, uint rand)
-{
-    float returnAngle = 0.0;
-
-    pos.x = min(imgSize.x - 0.01, max(0, pos.x));
-    pos.y = min(imgSize.y - 0.01, max(0, pos.y));
-    returnAngle = scaleRantomTo01(rand) * (TWO_PI / 2);
-    returnAngle += HALF_PI / 10;
-    if (returnAngle > PI) { returnAngle -= HALF_PI / 5; }
-    return returnAngle;
+    return scaleRantomTo01(rand) * (PI / 2);
 }
 
 float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
 {
     float sensorAngle = agent.angle + sensorAngleOffset;
-    vec2 sensorDir = angleToVector(sensorAngle); // vec2(cos(sensorAngle), sin(sensorAngle));
+    vec2 sensorDir = angleToVector(sensorAngle);
 
     ivec2 sensorCenter = ivec2(vec2(agent.x, agent.y) + sensorDir * sensorOffsetDst);
     float sum = 0.0;
@@ -97,7 +66,6 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
         {
             ivec2 pos = sensorCenter + ivec2(x_off, y_off);
             if (pos.x >= 0 && pos.x < imgSize.x && pos.y >= 0 && pos.y < imgSize.y)
-                // sum += dot(imageLoad(imgInput, pos), agentColor * 2 - 1);
                 sum += dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
         }
     return sum;
@@ -110,15 +78,40 @@ void main()
     Agent currAgent_read = agents[i];
     vec2 position = vec2(currAgent_read.x, currAgent_read.y);
     uint random = hash(uint(position.y * imgSize.y + position.x + hash(i)));
-    float randHalfAngleVal = randomHalfAngle(position, i, random);
-    bool isOOB = false;
+    float randHalfAngleVal = randomHalfAngle(random);
+    float OOB_angle = currAgent_read.angle;
 
-    vec2 direction = angleToVector(currAgent_read.angle); // vec2(cos(currAgent_read.angle), sin(currAgent_read.angle));
-    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0); // (51, 153, 102)
+    // out of bounds, iether random angle or wrap around. Random angle can lead to agents hugging boarders
+    if (position.x < 0)
+    {
+        OOB_angle = randHalfAngleVal + (PI + HALF_PI);
+        // agents[i].position.x = imgSize.x;
+    }
+    else if (position.x > imgSize.x)
+    {
+        OOB_angle = randHalfAngleVal + HALF_PI;
+        // agents[i].position.x = 0;
+    }
+    else if (position.y < 0)
+    {
+        OOB_angle = randHalfAngleVal;
+        // agents[i].position.y = imgSize.y;
+    }
+    else if (position.y > imgSize.y)
+    {
+        OOB_angle = randHalfAngleVal + PI;
+        // agents[i].position.y = 0;
+    }
+    if (OOB_angle > PI * 2)
+    {
+        OOB_angle -= (PI * 2);
+    }
+    agents[i].angle = OOB_angle;
+
+    vec2 direction = angleToVector(currAgent_read.angle);
+    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0); // un-normalised 255 RGB: (51, 153, 102)
 
     position += direction * agentMovmentSpeed * deltaTime;
-
-    position = outOfBounds_WrapArround(position);
 
     float weightForward = sense(currAgent_read, 0, agentColor);
     float weightLeft = sense(currAgent_read, sensorAngleSpacing, agentColor);
@@ -132,7 +125,6 @@ void main()
     }
     else if (weightForward < weightLeft && weightForward < weightRight)
     {   /// rotate randomly left or right
-        //agents[i].angle += (randomSteerStrength - 0.5) * 2 * agentTurnSpeed * deltaTime;
         if (randomSteerStrength > 0.5)
         {
             agents[i].angle -= randomSteerStrength * agentTurnSpeed * deltaTime;
