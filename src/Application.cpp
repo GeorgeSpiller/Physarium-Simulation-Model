@@ -28,91 +28,18 @@ constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__
 	dispached workgroup size will be 0.
 	Eg: const size_t NUMBER_OF_AGENTS = 64;
 */
-// ---------- simulation settings: Poster background effects ---------- 
+// ---------- simulation settings: prepatterning with large diffuese nodes ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
 constexpr auto WINDOW_WIDTH = 1784;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
 constexpr auto WINDOW_HEIGHT = 960;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;			// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;		// higher value = trails evaporate faster
+constexpr auto TRAILMAP_trailDiffuseSpeed = 1.5f;			// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 0.8f;		// higher value = trails evaporate faster
 constexpr auto AGENT_movmentSpeed = 40.0f;					// how fast the agents move each frame (NOT how fast the simulation runs)
 constexpr auto AGENT_turnSpeed = 50.0f;						// turn speed in degrees
 constexpr auto AGENT_sensorOffsetDst = 6.0f;				// how far away the sensors (F) are from agent
 constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;	// FL and FR sensor angle difference from F sensor
-constexpr auto AGENT_sensorSize = 3.0f;						// size of sesor samplying area
+constexpr auto AGENT_sensorSize = 6.0f;						// size of sesor samplying area
 GLuint NUMBER_OF_AGENTS = 50048; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
-
-/*
-
-// ---------- simulation settings:  Experimetation, good growth behaviours----------
-constexpr auto WINDOW_IS_FULLSCREEN = false;
-constexpr auto WINDOW_WIDTH = 1830;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto WINDOW_HEIGHT = 960;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
-constexpr auto AGENT_movmentSpeed = 40.0f;
-constexpr auto AGENT_turnSpeed = 50.0f;
-constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
-constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;// FL and FR sensor angle difference from F sensor
-constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
-size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
-
-
-//// ---------- simulation settings: First ever network!!! ---------- 
-//constexpr auto WINDOW_IS_FULLSCREEN = false;
-//constexpr auto WINDOW_WIDTH = 1200;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto WINDOW_HEIGHT = 800;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;		// higher value = shorter trail
-//constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
-//constexpr auto AGENT_movmentSpeed = 40.0f;
-//constexpr auto AGENT_turnSpeed = 50.0f;
-//constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
-//constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;			// FL and FR sensor angle difference from F sensor
-//constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
-//const size_t NUMBER_OF_AGENTS = 80000;
-
-
-//// ---------- simulation settings: some following behaviour ---------- 
-//constexpr auto WINDOW_IS_FULLSCREEN = false;
-//constexpr auto WINDOW_WIDTH = 1200;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto WINDOW_HEIGHT = 800;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;		// higher value = shorter trail
-//constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;	// higher value = trails evaporate faster
-//constexpr auto AGENT_movmentSpeed = 50.0f;
-//constexpr auto AGENT_turnSpeed = 3.1f;
-//constexpr auto AGENT_sensorOffsetDst = 6.0f;			// how far away the sensors (F) are from agent
-//constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;			// FL and FR sensor angle difference from F sensor
-//constexpr auto AGENT_sensorSize = 3.0f;					// size of sesor samplying area
-//const size_t NUMBER_OF_AGENTS = 80000;
-
-
-//// ---------- simulation settings: CharacteristicsOfPhysarum.pdf ---------- 
-//constexpr auto WINDOW_IS_FULLSCREEN = false;
-//constexpr auto WINDOW_WIDTH = 1024;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto WINDOW_HEIGHT = 576;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto TRAILMAP_trailDiffuseSpeed = 50.0f;		// higher value = shorter trail
-//constexpr auto TRAILMAP_trailEvaporationSpeed = 0.9f;	// higher value = trails evaporate faster
-//constexpr auto AGENT_movmentSpeed = 10.0f;
-//constexpr auto AGENT_turnSpeed = 45.0f;
-//constexpr auto AGENT_sensorOffsetDst = 9.0f;
-//constexpr auto AGENT_sensorAngleSpacing = 22.5f;
-//constexpr auto AGENT_sensorSize = 1.0f;
-//const size_t NUMBER_OF_AGENTS = 35389;
-
-
-//// ---------- simulation settings: GitHub Pysarum Sim ---------- 
-//constexpr auto WINDOW_IS_FULLSCREEN = true;
-//constexpr auto WINDOW_WIDTH = 1920;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto WINDOW_HEIGHT = 1080;			// if WINDOW_IS_FULLSCREEN is set, these are ignored
-//constexpr auto TRAILMAP_trailDiffuseSpeed = 20.0f;
-//constexpr auto TRAILMAP_trailEvaporationSpeed = 0.9f;
-//constexpr auto AGENT_movmentSpeed = 50.0f;
-//constexpr auto AGENT_turnSpeed = 100.0f;
-//constexpr auto AGENT_sensorOffsetDst = 16.0f;	
-//constexpr auto AGENT_sensorAngleSpacing = 0.6f;
-//constexpr auto AGENT_sensorSize = 3.0f;
-//const size_t NUMBER_OF_AGENTS = 131072;
-
-*/
 
 /*
 	This code was adapted using the following resources:

@@ -61,6 +61,12 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentColor)
     ivec2 sensorCenter = ivec2(vec2(agent.x, agent.y) + sensorDir * sensorOffsetDst);
     float sum = 0.0;
 
+    //// if senseing near a boundry return 0, this will attempt to stop agents clustering on the bounds
+    //if (sensorCenter.x < 5 || sensorCenter.x > imgSize.x - 5 || sensorCenter.y < 5 || sensorCenter.y > imgSize.y - 5)
+    //{
+    //    return sum;
+    //}
+    
     for (int x_off = -sensorSize; x_off <= sensorSize; x_off++)
         for (int y_off = -sensorSize; y_off <= sensorSize; y_off++)
         {
