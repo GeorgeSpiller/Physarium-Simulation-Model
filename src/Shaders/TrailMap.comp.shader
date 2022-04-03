@@ -16,7 +16,13 @@ void main()
     vec4 originalValue = imageLoad(imgInput, pixelCoords);
     vec4 prePatternValue = imageLoad(imgPrePattern, pixelCoords);
 
-    originalValue += prePatternValue;
+    // dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
+    // originalValue += prePatternValue;
+    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
+    if (dot(prePatternValue, agentColor * 2 - 1) < dot(originalValue, agentColor * 2 - 1))
+    {
+       originalValue = prePatternValue;
+    }
 
     // 3x3 mean kernel
     vec4 sum = vec4(0.0);
@@ -32,14 +38,14 @@ void main()
             {
                 if (currCoord.y > 0 && currCoord.y < imgSize.y)
                 {
-                    sum += imageLoad(imgPrePattern, currCoord);
+                    //sum += imageLoad(imgPrePattern, currCoord);
                     sum += imageLoad(imgInput, currCoord);
                     sampleAmount++;
                 }
             }
         }
     }
-    vec4 meanKernel = sum / (sampleAmount * 2);
+    vec4 meanKernel = sum / (sampleAmount);
 
     // Linear interpolation(x, y) weight = a : x * (1 - a) + y * a;
     vec4 diffuse = originalValue * (1 - (trailDiffuseSpeed * deltaTime)) + meanKernel * (trailDiffuseSpeed * deltaTime);

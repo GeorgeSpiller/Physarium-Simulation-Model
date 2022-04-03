@@ -18,7 +18,7 @@ constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Wor
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
-constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\SmallNodeGraphComplex.png";
+constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\DiffuseNodes.png"; // DiffuseNodes.png  SmallNodeGraphComplex.png
 
 
 /*
@@ -31,7 +31,7 @@ constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__
 // ---------- simulation settings: Poster background effects ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
 constexpr auto WINDOW_WIDTH = 1784;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto WINDOW_HEIGHT = 959;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_HEIGHT = 960;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
 constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;			// higher value = shorter trail
 constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;		// higher value = trails evaporate faster
 constexpr auto AGENT_movmentSpeed = 40.0f;					// how fast the agents move each frame (NOT how fast the simulation runs)
@@ -137,7 +137,6 @@ void paramCheck()
 			"The number of agents MUST be a multiple of 64." << std::endl;
 		exit(0);
 	}
-
 	if (WINDOW_IS_FULLSCREEN)
 		std::cout << paramCheckMessage << "WINDOW_IS_FULLSCREEN\n\t" <<
 		"Fullscreen functionality has not been fully implemented yet. Setting this will set the screen size fo 1920x1080 and may have undifined behavior." << std::endl;
@@ -147,9 +146,7 @@ void paramCheck()
 	if (WINDOW_HEIGHT % 8 != 0)
 		std::cout << paramCheckMessage << "WINDOW_HEIGHT\n\t" <<
 		"Desired window height is not a multiple of 8. This can result in undifined behavour, most likely slower performance and erronious visual artifacts." << std::endl;
-
 	std::cout << "--------------------------------------------------" << std::endl << std::endl;
-
 }
 
 int main()
@@ -158,7 +155,7 @@ int main()
 	paramCheck();
 
 	// Create the window using GLFW. Fullscreen currently not fully implemented
-	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
+	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0);
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
 
 	// Print GL and GLSL version information. Has to be done after creating window, as we need to have the glad headers loaded
