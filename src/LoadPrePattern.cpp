@@ -32,10 +32,9 @@ void LoadPrePattern::initalizeTexture(int windowWidth, int windowHeight)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 	if (prepatternData)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, prepatternData);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageWidth, imageHeight, 0, GL_RGBA, GL_FLOAT, prepatternData);
 		glBindImageTexture(2, tex_ID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 		free(prepatternData);
 	}

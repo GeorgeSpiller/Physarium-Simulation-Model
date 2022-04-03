@@ -30,8 +30,8 @@ constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__
 */
 // ---------- simulation settings: Poster background effects ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
-constexpr auto WINDOW_WIDTH = 1782;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto WINDOW_HEIGHT = 960;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_WIDTH = 1784;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
+constexpr auto WINDOW_HEIGHT = 959;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
 constexpr auto TRAILMAP_trailDiffuseSpeed = 1.0f;			// higher value = shorter trail
 constexpr auto TRAILMAP_trailEvaporationSpeed = 1.0f;		// higher value = trails evaporate faster
 constexpr auto AGENT_movmentSpeed = 40.0f;					// how fast the agents move each frame (NOT how fast the simulation runs)
@@ -129,10 +129,33 @@ size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016,
 	Compute Shader Flocking Behaviour: p492
 */
 
+void paramCheck() 
+{
+	const char* paramCheckMessage = "---------- Simulation Parameter Warning ----------\nThe following parameters contain some descrepencies:\n";
+	if (NUMBER_OF_AGENTS % 64 != 0) {
+		std::cout << paramCheckMessage << "NUMBER_OF_AGENTS\n\t" <<
+			"The number of agents MUST be a multiple of 64." << std::endl;
+		exit(0);
+	}
+
+	if (WINDOW_IS_FULLSCREEN)
+		std::cout << paramCheckMessage << "WINDOW_IS_FULLSCREEN\n\t" <<
+		"Fullscreen functionality has not been fully implemented yet. Setting this will set the screen size fo 1920x1080 and may have undifined behavior." << std::endl;
+	if (WINDOW_WIDTH % 8 != 0)
+		std::cout << paramCheckMessage << "WINDOW_WIDTH\n\t" <<
+		"Desired window width is not a multiple of 8. This can result in undifined behavour, most likely slower performance and erronious visual artifacts." << std::endl;
+	if (WINDOW_HEIGHT % 8 != 0)
+		std::cout << paramCheckMessage << "WINDOW_HEIGHT\n\t" <<
+		"Desired window height is not a multiple of 8. This can result in undifined behavour, most likely slower performance and erronious visual artifacts." << std::endl;
+
+	std::cout << "--------------------------------------------------" << std::endl << std::endl;
+
+}
 
 int main()
 {
 	srand((unsigned)(time(NULL)));
+	paramCheck();
 
 	// Create the window using GLFW. Fullscreen currently not fully implemented
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
