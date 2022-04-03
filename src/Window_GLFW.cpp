@@ -60,9 +60,10 @@ Window_GLFW::Window_GLFW(int width, int height, bool isFullScreen, std::string t
 		glfwTerminate();
 	};
 
-	/*glViewport(0, 0, width, height);
+	glViewport(0, 0, width, height);
 	GLFWframebuffersizefun callBackResize = framebuffer_size_callback;
-	glfwSetFramebufferSizeCallback(w, callBackResize);*/
+	glfwSetFramebufferSizeCallback(w_win, callBackResize);
+
 }
 
 Window_GLFW::~Window_GLFW()

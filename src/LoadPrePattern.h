@@ -8,7 +8,6 @@ public:
 	LoadPrePattern(unsigned int* tex_ID);
 	LoadPrePattern(const char * filePath, unsigned int *tex_ID);
 	
-
 	~LoadPrePattern() { 
 		stbi_image_free(prepatternDataRaw); 	
 	};
