@@ -29,7 +29,6 @@ float sensorOffsetDst = agentSensorSettings.x;
 float sensorAngleSpacing = agentSensorSettings.y;
 int sensorSize = int(agentSensorSettings.z);
 
-// https://www.shadertoy.com/view/XlXcW4
 uint hash(uint state) 
 {
     state ^= 2747636419;

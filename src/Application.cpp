@@ -18,6 +18,8 @@ constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Wor
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
+constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\SmallNodeGraphComplex.png";
+
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64 and needs to be a multiple of 64.
@@ -37,7 +39,7 @@ constexpr auto AGENT_turnSpeed = 50.0f;						// turn speed in degrees
 constexpr auto AGENT_sensorOffsetDst = 6.0f;				// how far away the sensors (F) are from agent
 constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;	// FL and FR sensor angle difference from F sensor
 constexpr auto AGENT_sensorSize = 3.0f;						// size of sesor samplying area
-GLuint NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
+GLuint NUMBER_OF_AGENTS = 50048; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 
 /*
 
@@ -131,27 +133,24 @@ size_t NUMBER_OF_AGENTS = 80000; // always multiples of 64: 50048, 60032, 70016,
 
 int main()
 {
-
 	srand((unsigned)(time(NULL)));
 
+	// Create the window using GLFW. Fullscreen currently not fully implemented
 	Window_GLFW window = Window_GLFW(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_IS_FULLSCREEN, WINDOW_NAME, 0); // custom size
 	// Window_GLFW window = Window_GLFW(WINDOW_NAME, 0); // fullscreen (1920 x 1080);
+
+	// Print GL and GLSL version information. Has to be done after creating window, as we need to have the glad headers loaded
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
 	// SpawnModes: RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
 	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
 
-	// std::vector<Stimuli> inputStimuli = { {1.0f, 0.0f, 0.0f} };
-	// PrePatterning prePattern = PrePatterning(inputStimuli, 1);
-
-
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-
+	// Set up shader files
 	const char* vertexShaderFile = VERTEX_SHADER_FILE_LOCATION;
 	const char* fragmentShaderFile = FRAGMENT_SHADER_FILE_LOCATION;
 	const char* agentMovmentShaderFile = AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION;
 	const char* trailMapShaderFile = TRAILMAP_COMPUTESHADER_FILE_LOCATION;
-	
 	ShaderLoader GeometryShaderProg(vertexShaderFile, fragmentShaderFile);
 	CompShaderLoader AgentMovmentProg(agentMovmentShaderFile);
 	CompShaderLoader TrailMapProg(trailMapShaderFile);
@@ -159,65 +158,17 @@ int main()
 	// set up compute shader storage buffers
 	AgentMovmentProg.useShaderStorageBuffer(NUMBER_OF_AGENTS * sizeof(Agent), (void*)&agentSim.getAgents()[0]);
 
-	// create an input and output texture to read/write and write only to, respectivly
-
-	/*
-		TODO:
-		- Debug: find out where the agents are:
-		1. Behind the texture? Change size of texture? render order?
-		2. Not rendering dues to different formats (tex being GL_UNSIGNED_BYTE) and tex uniform for 
-			shader being rgba32f (23 float)
-	*/
-
+	// Create textures to: 
+	// 1: render the prepattern (inp_TextureID) and 
+	// 2: render the final sim (pre pattern + agents, out_TextureID)
 	unsigned int inp_TextureID, out_TextureID;
-	// unsigned int out_TextureID = 1;
-	//int imageWidth;
-	//int imageHeight;
-	//int numberOfChannels;
-	//unsigned char* prepatternDataRaw;
-	//prepatternDataRaw = stbi_load("D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\prepat.png", &imageWidth, &imageHeight, &numberOfChannels, 0);
+	const char* prepatternFile = PREPATTERN_IMAGE_FILE_LOCATION;
 
-	LoadPrePattern prePattern = LoadPrePattern(NULL, &inp_TextureID);
-	int width = prePattern.getWidth();
-	int height = prePattern.getHeight();
-	unsigned char* rawData = prePattern.getDataRaw();
-	float* processedData = prePattern.getUnsignedToFloats();
+	LoadPrePattern prePattern = LoadPrePattern(prepatternFile, &inp_TextureID);
+	prePattern.initalizeTexture(window.getWidth(), window.getHeight());
 
-	// prePattern.initalizeTexture();
-
-	glGenTextures(1, &inp_TextureID);
-	glBindTexture(GL_TEXTURE_2D, inp_TextureID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, processedData);
-	glBindImageTexture(2, inp_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-
-
-	glGenTextures(1, &out_TextureID);
-	glBindTexture(GL_TEXTURE_2D, out_TextureID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	// -- uncomment to render texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	glBindImageTexture(1, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);	
-
-	////// output texture
-	//glGenTextures(1, &out_TextureID);
-	//glBindTexture(GL_TEXTURE_2D, out_TextureID);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, window.getWidth(), window.getHeight(), 0, GL_RGBA, GL_FLOAT, nullptr);
-	//glBindImageTexture(1, out_TextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
+	LoadPrePattern outputTexture = LoadPrePattern(&out_TextureID);
+	outputTexture.initalizeTexture(window.getWidth(), window.getHeight());
 
 	// setup buffers for the texture we render
 	GLuint tex_VAO, tex_VBO = 0;
@@ -247,8 +198,6 @@ int main()
 	glBindVertexArray(tex_VAO);
 
 	// set uniform settings (that are constant) for agentMovment compute and trailMap compute
-	// prePattern.writeToImage();
-
 	AgentMovmentProg.use();
 	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
 	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeed);
@@ -258,15 +207,14 @@ int main()
 	TrailMapProg.setFloat("trailDiffuseSpeed", TRAILMAP_trailDiffuseSpeed);
 	TrailMapProg.setFloat("trailEvaporationSpeed", TRAILMAP_trailEvaporationSpeed);
 
+	// Workgroup sizes for compute shader (groups_agent) and trail map (groups_x, groups_y)
 	GLuint groups_agent = NUMBER_OF_AGENTS / 64;
 	GLuint groups_x = window.getWidth() / 8;
 	GLuint groups_y = window.getHeight() / 8;
 
-	float DEBUG_uniform = 0.0;
 	float deltaT = 0.0f;
 
-	std::cout << "Entering Render Loop." << std::endl;
-
+	std::cout << " ---------- Entering Render Loop ---------- " << std::endl;
 	// -------------------- main render loop --------------------
 	while (!window.windowShouldClose())
 	{
@@ -274,7 +222,7 @@ int main()
 		window.active();
 		deltaT = window.getDeltaTime();
 		
-		// std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
+		std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
 
 		// Update agent movement
 		AgentMovmentProg.use();
@@ -306,15 +254,13 @@ int main()
 		// ----------
 		window.nextRender();
 	}
-
+	std::cout << " ---------- End Render Loop ---------- " << std::endl;
 	std::cout << "GL error stack: " << glGetError() << std::endl;
 	
 	// de-allocate all resources once they've outlived their purpose:
 	// --------------------------------------------------------------
 	glDeleteBuffers(1, &tex_VBO);
 	glDeleteVertexArrays(1, &tex_VAO);
-
-	free(processedData);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
