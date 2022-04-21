@@ -20,9 +20,6 @@ constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__W
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
 constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\[200] TwoNodesy.png"; // TwoDiffuseNodes960.png blank.png TwoDiffuseNodes.png
-//constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\ali.png"; // DiffuseNodes.png  SmallNodeGraphComplex.png blank.png TwoDiffuseNodes.png
-
-//D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64 and needs to be a multiple of 64.
@@ -40,9 +37,9 @@ constexpr auto TRAILMAP_trailEvaporationSpeed = 0.0f;		// higher value = trails 
 constexpr auto AGENT_movmentSpeed = 1.0f;			        // how fast the agents move each frame (NOT how fast the simulation runs)
 constexpr auto AGENT_turnSpeed = 45.0f;					// turn speed in degrees
 constexpr auto AGENT_sensorOffsetDst = 9.0f;				// how far away the sensors (F) are from agent
-constexpr auto AGENT_sensorAngleSpacing = 45.0f;				// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorAngleSpacing = 45.0;				// FL and FR sensor angle difference from F sensor
 constexpr auto AGENT_sensorSize = 1.0f;						// size of sesor samplying area
-GLuint NUMBER_OF_AGENTS = 6016; // ~15% of 200*200
+GLuint NUMBER_OF_AGENTS = 832; // ~15% of 200*200 = 6016
 // always multiples of 64: 2048, ..., 15040, 30080, ..., 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 // (~896) 23104 46208 69312 92416
 constexpr float AGENT_color[3] = { 1.0f, 1.0f, 1.0f }; // 0.2f, 0.6f, 0.4f // un-normalised 255 RGB: (51, 153, 102
@@ -156,7 +153,7 @@ int main()
 	AgentMovmentProg.use();
 	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
 	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeedRAD);
-	AgentMovmentProg.setVec3("agentSensorSettings", AGENT_sensorOffsetDst, AGENT_sensorAngleSpacing, AGENT_sensorSize);
+	AgentMovmentProg.setVec3("agentSensorSettings", AGENT_sensorOffsetDst, AGENT_sensorAngleSpacingRAD, AGENT_sensorSize);
 	AgentMovmentProg.setVec3("agentColor", AGENT_color[0], AGENT_color[1], AGENT_color[2]); 
 
 	TrailMapProg.use();

@@ -17,6 +17,9 @@ void main()
 
     // 3x3 mean kernel
     vec4 sum = vec4(0.0);
+    vec4 prePatSample = vec4(0.0);
+    vec4 outSample = vec4(0.0);
+
     ivec2 currCoord = ivec2(0);
     int sampleAmount = 0;
     for (int j = -1; j <= 1; j++) 
@@ -53,7 +56,17 @@ void main()
                 }
             }
 
-            sum += imageLoad(imgInput, currCoord);
+            prePatSample = imageLoad(imgPrePattern, currCoord);
+            outSample = imageLoad(imgInput, currCoord);
+
+            if ((prePatSample.r + prePatSample.g + prePatSample.b) > (outSample.r + outSample.g + outSample.b))
+            {
+                sum += prePatSample;
+            }
+            else 
+            {
+                sum += outSample;
+            }
             sampleAmount++;
         }
     }

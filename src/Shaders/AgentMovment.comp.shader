@@ -163,7 +163,6 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentCol)
     }
 }
 
-
 void main()
 {
     uint i = gl_GlobalInvocationID.x;
