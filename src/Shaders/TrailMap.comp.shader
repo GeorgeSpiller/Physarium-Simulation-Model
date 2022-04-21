@@ -8,21 +8,12 @@ layout(rgba32f, binding = 1) uniform writeonly image2D imgOutput;
 uniform float deltaTime;
 uniform float trailDiffuseSpeed;
 uniform float trailEvaporationSpeed;
+uniform vec3 agentColor;
 
 void main()
 {
     ivec2 imgSize = imageSize(imgInput);
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
-    vec4 originalValue = imageLoad(imgInput, pixelCoords);
-    vec4 prePatternValue = imageLoad(imgPrePattern, pixelCoords);
-
-    // dot(imageLoad(imgOutput, pos), agentColor * 2 - 1);
-    // originalValue += prePatternValue;
-    vec4 agentColor = vec4(0.2, 0.6, 0.4, 1.0);
-    if (dot(prePatternValue, agentColor * 2 - 1) < dot(originalValue, agentColor * 2 - 1))
-    {
-       originalValue = prePatternValue;
-    }
 
     // 3x3 mean kernel
     vec4 sum = vec4(0.0);
@@ -34,23 +25,46 @@ void main()
         {
             currCoord = ivec2(pixelCoords.x + j, pixelCoords.y + k);
             // bonuds checking
-            if (currCoord.x > 0 && currCoord.x < imgSize.x)
+            if (currCoord.x >= 0 && currCoord.x <= imgSize.x)
             {
-                if (currCoord.y > 0 && currCoord.y < imgSize.y)
+                if (currCoord.y >= 0 && currCoord.y <= imgSize.y)
+                {   // if currSample is in bounds
+                    sum += imageLoad(imgInput, currCoord);
+                    sampleAmount++;
+                } else // x in, y out
                 {
-                    //sum += imageLoad(imgPrePattern, currCoord);
+                    if (currCoord.y > imgSize.y) // if Y out of upper bound
+                    {
+                        currCoord.y -= imgSize.y;
+                        sum += imageLoad(imgInput, currCoord);
+                        sampleAmount++;
+                    } else if (currCoord.y < 0) // if y out of lower bound
+                    {
+                        currCoord.y += imgSize.y;
+                        sum += imageLoad(imgInput, currCoord);
+                        sampleAmount++;
+                    }
+                }
+            } else // x out, y in
+            {
+                if (currCoord.x > imgSize.x) // if x out of upper bound
+                {
+                    currCoord.x -= imgSize.x;
+                    sum += imageLoad(imgInput, currCoord);
+                    sampleAmount++;
+                } else if (currCoord.x < 0) // if x out of lower bound
+                {
+                    currCoord.x += imgSize.x;
                     sum += imageLoad(imgInput, currCoord);
                     sampleAmount++;
                 }
             }
         }
     }
-    vec4 meanKernel = sum / (sampleAmount);
+    vec4 meanKernel = sum / sampleAmount;
 
-    // Linear interpolation(x, y) weight = a : x * (1 - a) + y * a;
-    vec4 diffuse = originalValue * (1 - (trailDiffuseSpeed * deltaTime)) + meanKernel * (trailDiffuseSpeed * deltaTime);
-    vec4 diffEvap = diffuse - (trailEvaporationSpeed * deltaTime);
-    vec4 outputValue = vec4(diffEvap.r, diffEvap.g, diffEvap.b, 1.0);
-
+    vec4 diffuse = meanKernel * trailDiffuseSpeed;
+    vec4 outputValue = vec4(diffuse.r, diffuse.g, diffuse.b, 1.0);
+    
     imageStore(imgOutput, pixelCoords, outputValue);
 }

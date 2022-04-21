@@ -1,3 +1,5 @@
+#define PI_OVER_180 0.01745329251
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 //#include <stdio.h>
@@ -11,15 +13,16 @@
 #include "LoadPrePattern.h"
 #include "stb_image.h"
 
-
 // consts
 constexpr auto WINDOW_NAME = "Physarum Simulation.";
 constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\VertexShader.vert.shader";
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
-constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\DiffuseNodes.png"; // DiffuseNodes.png  SmallNodeGraphComplex.png
+constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\[200] TwoNodesy.png"; // TwoDiffuseNodes960.png blank.png TwoDiffuseNodes.png
+//constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\ali.png"; // DiffuseNodes.png  SmallNodeGraphComplex.png blank.png TwoDiffuseNodes.png
 
+//D:\Users\geosp\Documents\__Work\.Uni\FinalYear\Diss\PhysarumSimulation
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64 and needs to be a multiple of 64.
@@ -28,19 +31,23 @@ constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__
 	dispached workgroup size will be 0.
 	Eg: const size_t NUMBER_OF_AGENTS = 64;
 */
-// ---------- simulation settings: prepatterning with large diffuese nodes ---------- 
+// ---------- simulation settings: Jones et. al. ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
-constexpr auto WINDOW_WIDTH = 1784;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto WINDOW_HEIGHT = 960;							// if WINDOW_IS_FULLSCREEN is set, these are ignored
-constexpr auto TRAILMAP_trailDiffuseSpeed = 1.5f;			// higher value = shorter trail
-constexpr auto TRAILMAP_trailEvaporationSpeed = 0.8f;		// higher value = trails evaporate faster
-constexpr auto AGENT_movmentSpeed = 40.0f;					// how fast the agents move each frame (NOT how fast the simulation runs)
-constexpr auto AGENT_turnSpeed = 50.0f;						// turn speed in degrees
-constexpr auto AGENT_sensorOffsetDst = 6.0f;				// how far away the sensors (F) are from agent
-constexpr auto AGENT_sensorAngleSpacing = AGENT_turnSpeed;	// FL and FR sensor angle difference from F sensor
-constexpr auto AGENT_sensorSize = 6.0f;						// size of sesor samplying area
-GLuint NUMBER_OF_AGENTS = 50048; // always multiples of 64: 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
-
+constexpr auto WINDOW_WIDTH = 200;						// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 1784
+constexpr auto WINDOW_HEIGHT = 200;							// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 960
+constexpr auto TRAILMAP_trailDiffuseSpeed = 0.9f;			// higher value = shorter trail
+constexpr auto TRAILMAP_trailEvaporationSpeed = 0.0f;		// higher value = trails evaporate faster
+constexpr auto AGENT_movmentSpeed = 1.0f;			        // how fast the agents move each frame (NOT how fast the simulation runs)
+constexpr auto AGENT_turnSpeed = 45.0f;					// turn speed in degrees
+constexpr auto AGENT_sensorOffsetDst = 9.0f;				// how far away the sensors (F) are from agent
+constexpr auto AGENT_sensorAngleSpacing = 45.0f;				// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorSize = 1.0f;						// size of sesor samplying area
+GLuint NUMBER_OF_AGENTS = 6016; // ~15% of 200*200
+// always multiples of 64: 2048, ..., 15040, 30080, ..., 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
+// (~896) 23104 46208 69312 92416
+constexpr float AGENT_color[3] = { 1.0f, 1.0f, 1.0f }; // 0.2f, 0.6f, 0.4f // un-normalised 255 RGB: (51, 153, 102
+unsigned int simulationStepStopInerval = 2147483647;
+unsigned int simulationStepTermination = 2147483647; // 2147483647
 /*
 	This code was adapted using the following resources:
 	
@@ -78,7 +85,7 @@ void paramCheck()
 
 int main()
 {
-	srand((unsigned)(time(NULL)));
+	srand((unsigned int)time(nullptr));
 	paramCheck();
 
 	// Create the window using GLFW. Fullscreen currently not fully implemented
@@ -90,7 +97,7 @@ int main()
 	std::cout << "GLSL   Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
 	// SpawnModes: RANDOM, CIRCLE, POINT, POINT2, POINT4, RECT
-	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::RANDOM);
+	AgentSim agentSim = AgentSim(window.getWidth(), window.getHeight(), NUMBER_OF_AGENTS, SpawnMode::CIRCLE);
 
 	// Set up shader files
 	const char* vertexShaderFile = VERTEX_SHADER_FILE_LOCATION;
@@ -144,14 +151,18 @@ int main()
 	glBindVertexArray(tex_VAO);
 
 	// set uniform settings (that are constant) for agentMovment compute and trailMap compute
+	float AGENT_turnSpeedRAD = AGENT_turnSpeed * (float)PI_OVER_180;
+	float AGENT_sensorAngleSpacingRAD = AGENT_sensorAngleSpacing * (float)PI_OVER_180;
 	AgentMovmentProg.use();
 	AgentMovmentProg.setFloat("agentMovmentSpeed", AGENT_movmentSpeed);
-	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeed);
+	AgentMovmentProg.setFloat("agentTurnSpeed", AGENT_turnSpeedRAD);
 	AgentMovmentProg.setVec3("agentSensorSettings", AGENT_sensorOffsetDst, AGENT_sensorAngleSpacing, AGENT_sensorSize);
+	AgentMovmentProg.setVec3("agentColor", AGENT_color[0], AGENT_color[1], AGENT_color[2]); 
 
 	TrailMapProg.use();
 	TrailMapProg.setFloat("trailDiffuseSpeed", TRAILMAP_trailDiffuseSpeed);
 	TrailMapProg.setFloat("trailEvaporationSpeed", TRAILMAP_trailEvaporationSpeed);
+	TrailMapProg.setVec3("agentColor", AGENT_color[0], AGENT_color[1], AGENT_color[2]);
 
 	// Workgroup sizes for compute shader (groups_agent) and trail map (groups_x, groups_y)
 	GLuint groups_agent = NUMBER_OF_AGENTS / 64;
@@ -159,45 +170,70 @@ int main()
 	GLuint groups_y = window.getHeight() / 8;
 
 	float deltaT = 0.0f;
+	//float increasing_uniform = 86.0f;
+	unsigned int simulationStepCount = 0;
+	double averageDeltaTime = 0.0;
+	int simulationStepStopInervalSize = simulationStepStopInerval;
 
 	std::cout << std::endl << " ---------- Entering Render Loop ---------- " << std::endl;
 	// -------------------- main render loop --------------------
 	while (!window.windowShouldClose())
 	{
-		// input
 		window.active();
-		deltaT = window.getDeltaTime();
-		
-		std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
+		if (simulationStepCount < simulationStepStopInerval && simulationStepCount < simulationStepTermination)
+		{
+			//increasing_uniform += 0.0001f;
+		    // input
+			
+			deltaT = window.getDeltaTime();
 
-		// Update agent movement
-		AgentMovmentProg.use();
-		AgentMovmentProg.setFloat("deltaTime", deltaT);
+			//std::cout << "\r" << "DeltaT: " << deltaT << std::flush;
+			std::cout << "\r" << "simulationStepCount: " << simulationStepCount << std::flush;
+			//std::cout << "\r" << "Uniform: " << increasing_uniform << std::flush;
 
-		glDispatchCompute(groups_agent, 1, 1);
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
-		glFinish();
+			// Update agent movement
+			AgentMovmentProg.use();
+			//AgentMovmentProg.setFloat("deltaTime", deltaT);
+			//AgentMovmentProg.setVec3("agentSensorSettings", AGENT_sensorOffsetDst, increasing_uniform, AGENT_sensorSize);
+			//AgentMovmentProg.setFloat("agentTurnSpeed", increasing_uniform);
 
-		// update trail map
-		TrailMapProg.use();
-		TrailMapProg.setFloat("deltaTime", deltaT);
-		glDispatchCompute(groups_x, groups_y, 1);
-		// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-		// glFinish();
+			glDispatchCompute(groups_agent, 1, 1);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+			glFinish();
 
-		// render Geometry (texture)
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+			// update trail map
+			TrailMapProg.use();
+			//TrailMapProg.setFloat("deltaTime", deltaT);
+			//TrailMapProg.setFloat("trailEvaporationSpeed", increasing_uniform);
+			glDispatchCompute(groups_x, groups_y, 1);
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			glFinish();
 
-		// switch to vert and frag shader and draw texture quad
-		GeometryShaderProg.use();
-		glBindTexture(GL_TEXTURE_2D, out_TextureID);
-		glBindBuffer(GL_ARRAY_BUFFER, tex_VBO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-		// events
-		// ----------
+			// render Geometry (texture)
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			// switch to vert and frag shader and draw texture quad
+			GeometryShaderProg.use();
+			glBindTexture(GL_TEXTURE_2D, out_TextureID);
+			glBindBuffer(GL_ARRAY_BUFFER, tex_VBO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
+			// events
+			// ----------
+			simulationStepCount++;
+			averageDeltaTime += deltaT;
+		}
+		else if (simulationStepCount == simulationStepStopInerval)
+		{
+			averageDeltaTime = averageDeltaTime / simulationStepCount;
+			std::cout << std::endl << "Average Delta Time: " << averageDeltaTime << ", current step: " << simulationStepCount << std::endl;
+
+			simulationStepCount++;
+			simulationStepStopInerval += simulationStepStopInervalSize;
+			system("pause"); // can be used, but freezes applicaiton
+		}
 		window.nextRender();
 	}
 	std::cout << std::endl;

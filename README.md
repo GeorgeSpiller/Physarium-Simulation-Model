@@ -46,11 +46,11 @@ The number of agents to spawn in the simulation. This should always be multiples
 
 
 ## Roadmap
-- Change bounds from wrap to bounce random
 - Code clean up, resolving memory leaks
-- Reading model parameters from a json
-- full screen mode
 - Removing hardcoded file paths
+- Reading model parameters from a json
+- Removing bounds on the model parameters (dynamic workgroup sizes)
+- full screen mode
 - Additional pre-pattern image conversion:
     - support for images with no alpha channel
     - support for images of different pixel color value storage sizes and types.
