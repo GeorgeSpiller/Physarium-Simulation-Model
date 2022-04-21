@@ -28,37 +28,33 @@ void main()
             if (currCoord.x >= 0 && currCoord.x <= imgSize.x)
             {
                 if (currCoord.y >= 0 && currCoord.y <= imgSize.y)
-                {   // if currSample is in bounds
-                    sum += imageLoad(imgInput, currCoord);
-                    sampleAmount++;
+                {   // if currSample is in bounds, currCoord is correct
+                    
                 } else // x in, y out
                 {
                     if (currCoord.y > imgSize.y) // if Y out of upper bound
                     {
                         currCoord.y -= imgSize.y;
-                        sum += imageLoad(imgInput, currCoord);
-                        sampleAmount++;
                     } else if (currCoord.y < 0) // if y out of lower bound
                     {
                         currCoord.y += imgSize.y;
-                        sum += imageLoad(imgInput, currCoord);
-                        sampleAmount++;
                     }
                 }
-            } else // x out, y in
+            } 
+            else // x out, y in
             {
                 if (currCoord.x > imgSize.x) // if x out of upper bound
                 {
                     currCoord.x -= imgSize.x;
-                    sum += imageLoad(imgInput, currCoord);
-                    sampleAmount++;
-                } else if (currCoord.x < 0) // if x out of lower bound
+                } 
+                else if (currCoord.x < 0) // if x out of lower bound
                 {
                     currCoord.x += imgSize.x;
-                    sum += imageLoad(imgInput, currCoord);
-                    sampleAmount++;
                 }
             }
+
+            sum += imageLoad(imgInput, currCoord);
+            sampleAmount++;
         }
     }
     vec4 meanKernel = sum / sampleAmount;

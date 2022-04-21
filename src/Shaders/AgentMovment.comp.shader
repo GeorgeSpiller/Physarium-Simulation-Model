@@ -78,64 +78,89 @@ float sense(Agent agent, float sensorAngleOffset, vec4 agentCol)
 {
     float sensorAngle = agent.angle + sensorAngleOffset;
     float sum = 0.0;
+    vec4 sencedValue = vec4(0.0);
     vec2 sensorDir = angleToVector(sensorAngle);
     ivec2 sensorCenter = ivec2(vec2(agent.x, agent.y) + sensorDir * sensorOffsetDst);
-    vec4 sencedValue = imageLoad(imgOutput, sensorCenter);
+    ivec2 pos = sensorCenter;
 
     if (sensorSize <= 1)
     {
-        if (sensorCenter.x >= 0 && sensorCenter.x < imgSize.x && sensorCenter.y >= 0 && sensorCenter.y < imgSize.y) 
+        if (pos.x >= 0 && pos.x <= imgSize.x)
         {
-            return sencedValue.r + sencedValue.g + sencedValue.b;
-            //return dot(imageLoad(imgOutput, sensorCenter), agentCol);
-        }  
-    }
-
-    for (int x_off = -sensorSize; x_off <= sensorSize; x_off++)
-    {
-        for (int y_off = -sensorSize; y_off <= sensorSize; y_off++)
-        {
-            ivec2 pos = sensorCenter + ivec2(x_off, y_off);
-            if (pos.x >= 0 && pos.x <= imgSize.x)
-            {
-                if (pos.y >= 0 && pos.y <= imgSize.y)
-                {   // if pos is in bounds
-                    sencedValue = imageLoad(imgOutput, pos);
-                    sum += sencedValue.r + sencedValue.g + sencedValue.b;
-                } else // x in bounds, y out of bounds
-                {
-                    if (pos.y > imgSize.y)
-                    {
-                        pos.y -= imageSize.y;
-                        sencedValue = imageLoad(imgOutput, pos);
-                        sum += sencedValue.r + sencedValue.g + sencedValue.b;
-                    }
-                    else if (pos.y < 0) 
-                    {
-                        pos.y += imageSize.y;
-                        sencedValue = imageLoad(imgOutput, pos);
-                        sum += sencedValue.r + sencedValue.g + sencedValue.b;
-                    }
-                }
-            } else  // x out of bounds, y in bounds
-            {
-                if (pos.x > imgSize.x)
-                {
-                    pos.x -= imageSize.x;
-                    sencedValue = imageLoad(imgOutput, pos);
-                    sum += sencedValue.r + sencedValue.g + sencedValue.b;
-                }
-                else if (pos.x < 0) 
-                {
-                    pos.x += imageSize.x;
-                    sencedValue = imageLoad(imgOutput, pos);
-                    sum += sencedValue.r + sencedValue.g + sencedValue.b;
-                }
+            if (pos.y >= 0 && pos.y <= imgSize.y)
+            {   // if pos is in bounds, do not change pos
 
             }
+            else // x in bounds, y out of bounds
+            {
+                if (pos.y > imgSize.y)
+                {
+                    pos.y -= imgSize.y;
+                }
+                else if (pos.y < 0)
+                {
+                    pos.y += imgSize.y;
+                }
+            }
         }
+        else  // x out of bounds, y in bounds
+        {
+            if (pos.x > imgSize.x)
+            {
+                pos.x -= imgSize.x;
+            }
+            else if (pos.x < 0)
+            {
+                pos.x += imgSize.x;
+            }
+        }
+
+        sencedValue = imageLoad(imgOutput, pos);
+        return sencedValue.r + sencedValue.g + sencedValue.b;
     }
-    return sum;
+    else {
+        for (int x_off = -sensorSize; x_off <= sensorSize; x_off++)
+        {
+            for (int y_off = -sensorSize; y_off <= sensorSize; y_off++)
+            {
+                pos = sensorCenter + ivec2(x_off, y_off);
+
+                if (pos.x >= 0 && pos.x <= imgSize.x)
+                {
+                    if (pos.y >= 0 && pos.y <= imgSize.y)
+                    {   // if pos is in bounds, do not change pos
+
+                    }
+                    else // x in bounds, y out of bounds
+                    {
+                        if (pos.y > imgSize.y)
+                        {
+                            pos.y -= imgSize.y;
+                        }
+                        else if (pos.y < 0)
+                        {
+                            pos.y += imgSize.y;
+                        }
+                    }
+                }
+                else  // x out of bounds, y in bounds
+                {
+                    if (pos.x > imgSize.x)
+                    {
+                        pos.x -= imgSize.x;
+                    }
+                    else if (pos.x < 0)
+                    {
+                        pos.x += imgSize.x;
+                    }
+                }
+
+                sencedValue = imageLoad(imgOutput, pos);
+                sum += sencedValue.r + sencedValue.g + sencedValue.b;
+            }
+        }
+        return sum;
+    }
 }
 
 
