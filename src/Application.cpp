@@ -19,7 +19,7 @@ constexpr auto VERTEX_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Wor
 constexpr auto FRAGMENT_SHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\FragmentShader.frag.shader";
 constexpr auto AGENTMOVMENT_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\AgentMovment.comp.shader";
 constexpr auto TRAILMAP_COMPUTESHADER_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\Shaders\\TrailMap.comp.shader";
-constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\[200] TwoNodesy.png"; // TwoDiffuseNodes960.png blank.png TwoDiffuseNodes.png
+constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__Work\\.Uni\\FinalYear\\Diss\\PhysarumSimulation\\PhysarumSimulation\\src\\PrePatternImages\\[200] blank.png"; // [200x50] blank.png TwoDiffuseNodes960.png blank.png TwoDiffuseNodes.png
 
 /*
 	Due to efficency reasons, the minimum number of agents is 64 and needs to be a multiple of 64.
@@ -30,21 +30,24 @@ constexpr auto PREPATTERN_IMAGE_FILE_LOCATION = "D:\\Users\\geosp\\Documents\\__
 */
 // ---------- simulation settings: Jones et. al. ---------- 
 constexpr auto WINDOW_IS_FULLSCREEN = false;
-constexpr auto WINDOW_WIDTH = 200;						// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 1784
-constexpr auto WINDOW_HEIGHT = 200;							// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 960
+constexpr auto WINDOW_WIDTH = 304;						// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 1784
+constexpr auto WINDOW_HEIGHT = 304;							// if WINDOW_IS_FULLSCREEN is set, these are ignored 304 960
 constexpr auto TRAILMAP_trailDiffuseSpeed = 0.9f;			// higher value = shorter trail
 constexpr auto TRAILMAP_trailEvaporationSpeed = 0.0f;		// higher value = trails evaporate faster
 constexpr auto AGENT_movmentSpeed = 1.0f;			        // how fast the agents move each frame (NOT how fast the simulation runs)
-constexpr auto AGENT_turnSpeed = 45.0f;					// turn speed in degrees
+constexpr auto AGENT_turnSpeed = 45.0;					// turn speed in degrees
 constexpr auto AGENT_sensorOffsetDst = 9.0f;				// how far away the sensors (F) are from agent
-constexpr auto AGENT_sensorAngleSpacing = 45.0;				// FL and FR sensor angle difference from F sensor
+constexpr auto AGENT_sensorAngleSpacing = 22.5f;				// FL and FR sensor angle difference from F sensor
 constexpr auto AGENT_sensorSize = 1.0f;						// size of sesor samplying area
-GLuint NUMBER_OF_AGENTS = 832; // ~15% of 200*200 = 6016
+GLuint NUMBER_OF_AGENTS = 18496;
+// ~15% of 200*200 = 6016
+// ~20% of 304*304 = 18496
 // always multiples of 64: 2048, ..., 15040, 30080, ..., 50048, 60032, 70016, 80000, 90048, 100032, ..., 499008
 // (~896) 23104 46208 69312 92416
 constexpr float AGENT_color[3] = { 1.0f, 1.0f, 1.0f }; // 0.2f, 0.6f, 0.4f // un-normalised 255 RGB: (51, 153, 102
-unsigned int simulationStepStopInerval = 2147483647;
+unsigned int simulationStepStopInerval = 2000;
 unsigned int simulationStepTermination = 2147483647; // 2147483647
+// 0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180
 /*
 	This code was adapted using the following resources:
 	
@@ -171,6 +174,7 @@ int main()
 	unsigned int simulationStepCount = 0;
 	double averageDeltaTime = 0.0;
 	int simulationStepStopInervalSize = simulationStepStopInerval;
+	simulationStepStopInerval = 1;
 
 	std::cout << std::endl << " ---------- Entering Render Loop ---------- " << std::endl;
 	// -------------------- main render loop --------------------

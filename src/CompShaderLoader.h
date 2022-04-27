@@ -27,8 +27,11 @@ public:
 	void bindShaderStorageBuffer();
 	void unbindShaderStorageBuffer();
 
-private:
 	GLuint BuffObjNameArry = 0;
 	GLuint BuffObjStaticArry = 1;
+private:
+	//GLuint BuffObjNameArry = 0;
+	//GLuint BuffObjStaticArry = 1;
+	
 };
 //#endif
